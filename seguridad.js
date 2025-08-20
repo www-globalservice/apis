@@ -3,8 +3,8 @@
 
         // ---- CONFIGURACIÓN ----
         const WATERMARK_TEXT = "SECURITY";
-        const WATERMARK_LOGO_URL = "https://i.ibb.co/wRC22Rb/proteger.png";
-        const ADBLOCK_REDIRECT_URL = "https://tu-pagina-de-aviso.com/adblock"; // Opcional
+        const WATERMARK_LOGO_URL = "https://i.ibb.co/wrc22gbR/proteger.png";
+        const ADBLOCK_REDIRECT_URL = "#"; // Opcional
 
         // ---- MÓDULO 1: ANTI-CAPTURAS Y HERRAMIENTAS DE DESARROLLO ----
 
