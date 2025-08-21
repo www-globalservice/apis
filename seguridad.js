@@ -1,176 +1,232 @@
-    (function() {
-        'use strict';
+/**
+ * Fly Segurity v1.0
+ * Un sistema de seguridad web en JavaScript para proteger el contenido de tu página.
+ * Creado con un enfoque en la disuasión y la experiencia de usuario.
+ */
 
-        // ---- CONFIGURACIÓN ----
-        const WATERMARK_TEXT = "SECURITY";
-        const WATERMARK_LOGO_URL = "https://i.ibb.co/wrc22gbR/proteger.png";
-        const ADBLOCK_REDIRECT_URL = "#"; // Opcional
+(function() {
+    // --- CONFIGURACIÓN INICIAL ---
+    const config = {
+        // URL a la que redirige el logo. ¡Cámbiala por tu página!
+        creatorPage: "https://tu-pagina-web.com",
+        // URL del logo de Fly Segurity
+        logoUrl: "https://i.ibb.co/jkQWRSkM/Fly-Segurity.png",
+        // Sensibilidad para la detección de acciones repetitivas (menos es más sensible)
+        actionThreshold: {
+            clicks: { count: 20, time: 3000 }, // 20 clicks en 3 segundos
+            keys: { count: 30, time: 3000 }   // 30 pulsaciones en 3 segundos
+        }
+    };
 
-        // ---- MÓDULO 1: ANTI-CAPTURAS Y HERRAMIENTAS DE DESARROLLO ----
+    // --- LÓGICA DE SEGURIDAD ---
 
-        // Detección de apertura de herramientas de desarrollo (F12, Ctrl+Shift+I, etc.)
-        const devtools = {
-            isOpen: false,
-            orientation: null,
-        };
+    // 1. VERIFICACIÓN DE BANEO
+    const checkBanStatus = () => {
+        const banInfo = JSON.parse(localStorage.getItem('flySegurityBan'));
+        if (banInfo && new Date().getTime() < banInfo.expires) {
+            const remainingTime = Math.ceil((banInfo.expires - new Date().getTime()) / (1000 * 60 * 60));
+            document.body.innerHTML = `
+                <div style="position:fixed; top:0; left:0; width:100%; height:100%; background-color: #111; color: #fff; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family: sans-serif; z-index: 99999;">
+                    <h1 style="font-size: 2.5rem; color: #ff4d4d;">Acceso Bloqueado</h1>
+                    <p style="font-size: 1.2rem; margin-top: 10px;">Tu acceso a este sitio ha sido suspendido temporalmente por actividad sospechosa.</p>
+                    <p style="font-size: 1rem; margin-top: 20px;">Podrás volver a intentarlo en aproximadamente ${remainingTime} horas.</p>
+                </div>`;
+            // Detiene la ejecución de cualquier otro script
+            throw new Error("User is banned.");
+        }
+    };
 
-        const threshold = 160;
+    // 2. FUNCIÓN DE BANEO
+    const banUser = (durationHours = 24) => {
+        const expires = new Date().getTime() + durationHours * 60 * 60 * 1000;
+        localStorage.setItem('flySegurityBan', JSON.stringify({ expires }));
+        localStorage.removeItem('flySegurityWarning'); // Limpia advertencias previas
+        checkBanStatus(); // Aplica el bloqueo inmediatamente
+    };
 
-        const emitEvent = (isOpen, orientation) => {
-            window.dispatchEvent(new CustomEvent("devtoolschange", {
-                detail: {
-                    isOpen,
-                    orientation,
-                },
-            }));
-        };
+    // 3. PANEL DE ADVERTENCIA
+    const showWarningPanel = () => {
+        if (document.getElementById('fly-warning-panel')) return; // No mostrar si ya está visible
 
-        const main = ({
-            emitEvents = true
-        } = {}) => {
-            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-            const orientation = widthThreshold ? "vertical" : "horizontal";
-
-            if (!(heightThreshold && widthThreshold) &&
-                ((window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) || widthThreshold || heightThreshold)) {
-                if ((!devtools.isOpen || devtools.orientation !== orientation) && emitEvents) {
-                    emitEvent(true, orientation);
-                }
-                devtools.isOpen = true;
-                devtools.orientation = orientation;
-            } else {
-                if (devtools.isOpen && emitEvents) {
-                    emitEvent(false, null);
-                }
-                devtools.isOpen = false;
-                devtools.orientation = null;
-            }
-        };
-
-        main({
-            emitEvents: false
-        });
-        setInterval(main, 500);
-
-        // Acción al detectar las herramientas de desarrollo
-        window.addEventListener("devtoolschange", event => {
-            if (event.detail.isOpen) {
-                // Ofusca el contenido para dificultar la lectura
-                document.body.innerHTML = "<div style='text-align:center; margin-top: 50px;'><h1>Acción no permitida detectada.</h1><p>El contenido ha sido protegido.</p></div>";
-            }
-        });
-
-        // Detección de la tecla "Imprimir Pantalla"
-        document.addEventListener('keyup', (e) => {
-            if (e.key == 'PrintScreen') {
-                navigator.clipboard.writeText(''); // Intenta limpiar el portapapeles
-                alert("Las capturas de pantalla están deshabilitadas.");
-            }
-        });
-        
-        // Bloqueo de atajos de teclado comunes para ver código fuente y guardar
-        document.addEventListener('keydown', function(e) {
-            if (
-                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || // Ctrl+Shift+I/J/C
-                (e.ctrlKey && e.key === 'U') || // Ctrl+U
-                (e.ctrlKey && e.key === 'S')    // Ctrl+S
-            ) {
-                e.preventDefault();
-                alert("Esta función está deshabilitada por seguridad.");
-            }
-        });
-
-
-        // ---- MÓDULO 2: ANTI-COPIAR Y SELECCIONAR ----
-
-        // Deshabilitar selección de texto, clic derecho y arrastrar
-        document.addEventListener('contextmenu', event => event.preventDefault());
-        document.onselectstart = () => false;
-        document.ondragstart = () => false;
-        
-        // Aplicar estilos CSS para evitar la selección
-        const antiCopyStyles = document.createElement('style');
-        antiCopyStyles.innerHTML = `
-            body, html {
-                -webkit-user-select: none; /* Safari */
-                -moz-user-select: none; /* Firefox */
-                -ms-user-select: none; /* IE10+/Edge */
-                user-select: none; /* Estándar */
-                -webkit-touch-callout: none; /* iOS Safari */
-            }
+        const panel = document.createElement('div');
+        panel.id = 'fly-warning-panel';
+        panel.innerHTML = `
+            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">⚠️ Actividad Sospechosa Detectada</div>
+            <div>Se ha registrado un comportamiento anómalo. La repetición de esta actividad resultará en un bloqueo temporal de tu acceso.</div>
         `;
-        document.head.appendChild(antiCopyStyles);
+        // Estilos del panel
+        Object.assign(panel.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            backgroundColor: '#ffc107',
+            color: '#333',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            zIndex: '100000',
+            fontFamily: 'sans-serif',
+            maxWidth: '350px',
+            borderLeft: '5px solid #ff9800'
+        });
 
+        document.body.appendChild(panel);
 
-        // ---- MÓDULO 3: DETECCIÓN DE ADBLOCK ----
-        
-        function detectAdBlock() {
-            const adBlockTest = document.createElement('div');
-            adBlockTest.innerHTML = '&nbsp;';
-            adBlockTest.className = 'adsbox'; // Nombre de clase común que los AdBlockers bloquean
-            adBlockTest.style.position = 'absolute';
-            adBlockTest.style.left = '-5000px';
-            adBlockTest.style.width = '1px';
-            adBlockTest.style.height = '1px';
+        setTimeout(() => {
+            panel.style.transition = 'opacity 0.5s ease';
+            panel.style.opacity = '0';
+            setTimeout(() => document.body.removeChild(panel), 500);
+        }, 5000); // El panel desaparece después de 5 segundos
 
-            document.body.appendChild(adBlockTest);
-
-            setTimeout(function() {
-                if (adBlockTest.offsetHeight === 0) {
-                    // AdBlock detectado
-                    document.body.innerHTML = `
-                        <div style='position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); color:white; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index: 9999;'>
-                            <h1 style='font-size: 2em;'>AdBlock Detectado</h1>
-                            <p style='font-size: 1.2em; max-width: 600px; text-align: center;'>Para continuar, por favor deshabilita tu bloqueador de anuncios y recarga la página. Este sitio se financia gracias a la publicidad.</p>
-                        </div>
-                    `;
-                }
-                // Limpiar el elemento de prueba
-                document.body.removeChild(adBlockTest);
-            }, 100);
+        // Lógica de advertencia/baneo
+        const hasBeenWarned = localStorage.getItem('flySegurityWarning');
+        if (hasBeenWarned) {
+            banUser();
+        } else {
+            localStorage.setItem('flySegurityWarning', 'true');
         }
-
-        // Ejecutar la detección después de que la página cargue
-        window.onload = detectAdBlock;
+    };
 
 
-        // ---- MÓDULO 4: MARCA DE AGUA ----
-        
-        function addWatermark() {
-            const watermarkDiv = document.createElement('div');
-            watermarkDiv.id = 'security-watermark';
-            watermarkDiv.style.position = 'fixed';
-            watermarkDiv.style.bottom = '10px';
-            watermarkDiv.style.left = '10px';
-            watermarkDiv.style.zIndex = '9998'; // Un poco menos que el bloqueo de AdBlock
-            watermarkDiv.style.display = 'flex';
-            watermarkDiv.style.alignItems = 'center';
-            watermarkDiv.style.padding = '5px 8px';
-            watermarkDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-            watermarkDiv.style.borderRadius = '5px';
-            watermarkDiv.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
-            watermarkDiv.style.pointerEvents = 'none'; // Para no interferir con clics
-            watermarkDiv.style.fontFamily = 'Arial, sans-serif';
-            watermarkDiv.style.fontSize = '12px';
+    // --- MÓDULOS DE PROTECCIÓN ---
 
-            const logo = document.createElement('img');
-            logo.src = WATERMARK_LOGO_URL;
-            
-            logo.style.width = '16px';
-            logo.style.height = '16px';
-            logo.style.marginRight = '8px';
-            
-            const text = document.createElement('span');
-            text.textContent = WATERMARK_TEXT;
-            
-            watermarkDiv.appendChild(logo);
-            watermarkDiv.appendChild(text);
-            
-            document.body.appendChild(watermarkDiv);
+    // 4. ANTI-COPIADO Y CLIC DERECHO
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('copy', e => {
+        e.preventDefault();
+        banUser(); // Falta grave, baneo inmediato
+    });
+     document.addEventListener('cut', e => {
+        e.preventDefault();
+        banUser(); // Falta grave, baneo inmediato
+    });
+
+    // 5. ANTI-HERRAMIENTAS DE DESARROLLADOR Y ATAJOS
+    let devToolsOpen = false;
+    const devToolsDetector = () => {
+        // Este es un truco común, no es infalible pero disuade
+        const threshold = 160;
+        if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+            if (!devToolsOpen) {
+                devToolsOpen = true;
+                banUser(); // Falta grave, baneo inmediato
+            }
         }
+    };
+    // Revisar periódicamente
+    setInterval(devToolsDetector, 1000);
 
-        // Añadir la marca de agua cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', addWatermark);
+    document.addEventListener('keydown', e => {
+        // Bloquear F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase() === 'U')) {
+            e.preventDefault();
+            banUser(); // Falta grave, baneo inmediato
+        }
+        // Bloquear Ctrl+P (Imprimir) que puede usarse para guardar como PDF
+        if (e.ctrlKey && e.key.toUpperCase() === 'P') {
+            e.preventDefault();
+        }
+    });
 
-    })();
+    // 6. DETECCIÓN DE ACCIONES REPETITIVAS (AUTOMATIZACIÓN)
+    let lastActions = { clicks: [], keys: [] };
+
+    const detectRepetitiveAction = (type, time) => {
+        const now = new Date().getTime();
+        const actions = lastActions[type];
+        actions.push(now);
+
+        // Filtra las acciones que están fuera de la ventana de tiempo
+        lastActions[type] = actions.filter(timestamp => now - timestamp < time);
+
+        // Si el número de acciones supera el umbral, activa la advertencia
+        if (lastActions[type].length > config.actionThreshold[type].count) {
+            showWarningPanel();
+            lastActions[type] = []; // Resetea el contador para no lanzar múltiples advertencias
+        }
+    };
+
+    document.addEventListener('click', () => detectRepetitiveAction('clicks', config.actionThreshold.clicks.time));
+    document.addEventListener('keydown', () => detectRepetitiveAction('keys', config.actionThreshold.keys.time));
+
+
+    // --- MARCA DE AGUA ESTÉTICA ---
+
+    const createWatermark = () => {
+        const watermark = document.createElement('a');
+        watermark.href = config.creatorPage;
+        watermark.target = '_blank';
+        watermark.id = 'fly-segurity-watermark';
+
+        const logo = document.createElement('img');
+        logo.src = config.logoUrl;
+        Object.assign(logo.style, {
+            width: '50px',
+            height: '50px',
+            transition: 'transform 0.3s ease'
+        });
+
+        const protectedText = document.createElement('div');
+        protectedText.textContent = 'Página Protegida y Encriptada';
+        Object.assign(protectedText.style, {
+            position: 'absolute',
+            bottom: '120%', // Posicionado encima del logo
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: '#fff',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            whiteSpace: 'nowrap',
+            opacity: '0',
+            visibility: 'hidden',
+            transition: 'opacity 0.3s ease, visibility 0.3s ease'
+        });
+
+        watermark.appendChild(logo);
+        watermark.appendChild(protectedText);
+        document.body.appendChild(watermark);
+
+        // Estilos del contenedor de la marca de agua
+        Object.assign(watermark.style, {
+            position: 'fixed',
+            bottom: '15px',
+            left: '15px',
+            zIndex: '99998',
+            cursor: 'pointer',
+            textDecoration: 'none'
+        });
+
+        // Animación al mantener presionado
+        let pressTimer;
+        watermark.addEventListener('mousedown', () => {
+            logo.style.transform = 'scale(1.2)';
+            protectedText.style.visibility = 'visible';
+            protectedText.style.opacity = '1';
+            pressTimer = setTimeout(() => {
+                // Si quieres que pase algo después de un tiempo largo, ponlo aquí
+            }, 1000);
+        });
+        watermark.addEventListener('mouseup', () => {
+            logo.style.transform = 'scale(1)';
+            protectedText.style.opacity = '0';
+            protectedText.style.visibility = 'hidden';
+            clearTimeout(pressTimer);
+        });
+        watermark.addEventListener('mouseleave', () => { // También si el mouse se va
+            logo.style.transform = 'scale(1)';
+            protectedText.style.opacity = '0';
+            protectedText.style.visibility = 'hidden';
+            clearTimeout(pressTimer);
+        });
+    };
+
+    // --- INICIALIZACIÓN ---
+    document.addEventListener('DOMContentLoaded', () => {
+        checkBanStatus();
+        createWatermark();
+    });
+
+})();
