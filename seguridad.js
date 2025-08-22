@@ -1,7 +1,7 @@
 /**
- * Fly Segurity v1.0
- * Un sistema de seguridad web en JavaScript para proteger el contenido de tu página.
- * Creado con un enfoque en la disuasión y la experiencia de usuario.
+ * Fly Security v2.0 - Professional Edition
+ * Un sistema de seguridad web mejorado con enfoque en la disuasión, la experiencia de usuario y una estética profesional.
+ * Incluye un panel de estado animado, integración de Animate.css y estilos optimizados.
  */
 
 (function() {
@@ -9,224 +9,250 @@
     const config = {
         // URL a la que redirige el logo. ¡Cámbiala por tu página!
         creatorPage: "https://tu-pagina-web.com",
-        // URL del logo de Fly Segurity
+        // URL del logo para la marca de agua (opcional, ahora usamos SVG)
         logoUrl: "https://i.ibb.co/jkQWRSkM/Fly-Segurity.png",
-        // Sensibilidad para la detección de acciones repetitivas (menos es más sensible)
+        // Sensibilidad para la detección de acciones repetitivas
         actionThreshold: {
-            clicks: { count: 20, time: 3000 }, // 20 clicks en 3 segundos
-            keys: { count: 30, time: 3000 }   // 30 pulsaciones en 3 segundos
+            clicks: { count: 20, time: 3000 }, // 20 clicks en 3s
+            keys: { count: 30, time: 3000 }   // 30 pulsaciones en 3s
         }
     };
 
-    // --- LÓGICA DE SEGURIDAD ---
+    // --- LÓGICA DE SEGURIDAD (Sin cambios funcionales mayores) ---
 
-    // 1. VERIFICACIÓN DE BANEO
     const checkBanStatus = () => {
-        const banInfo = JSON.parse(localStorage.getItem('flySegurityBan'));
+        const banInfo = JSON.parse(localStorage.getItem('flySecurityBan'));
         if (banInfo && new Date().getTime() < banInfo.expires) {
             const remainingTime = Math.ceil((banInfo.expires - new Date().getTime()) / (1000 * 60 * 60));
             document.body.innerHTML = `
-                <div style="position:fixed; top:0; left:0; width:100%; height:100%; background-color: #111; color: #fff; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family: sans-serif; z-index: 99999;">
-                    <h1 style="font-size: 2.5rem; color: #ff4d4d;">Acceso Bloqueado</h1>
-                    <p style="font-size: 1.2rem; margin-top: 10px;">Tu acceso a este sitio ha sido suspendido temporalmente por actividad sospechosa.</p>
-                    <p style="font-size: 1rem; margin-top: 20px;">Podrás volver a intentarlo en aproximadamente ${remainingTime} horas.</p>
+                <div class="fly-ban-screen">
+                    <h1>Acceso Bloqueado</h1>
+                    <p>Tu acceso a este sitio ha sido suspendido temporalmente por actividad sospechosa.</p>
+                    <p>Podrás volver a intentarlo en aproximadamente <strong>${remainingTime} horas</strong>.</p>
                 </div>`;
-            // Detiene la ejecución de cualquier otro script
             throw new Error("User is banned.");
         }
     };
 
-    // 2. FUNCIÓN DE BANEO
     const banUser = (durationHours = 24) => {
         const expires = new Date().getTime() + durationHours * 60 * 60 * 1000;
-        localStorage.setItem('flySegurityBan', JSON.stringify({ expires }));
-        localStorage.removeItem('flySegurityWarning'); // Limpia advertencias previas
-        checkBanStatus(); // Aplica el bloqueo inmediatamente
+        localStorage.setItem('flySecurityBan', JSON.stringify({ expires }));
+        localStorage.removeItem('flySecurityWarning');
+        checkBanStatus();
     };
 
-    // 3. PANEL DE ADVERTENCIA
     const showWarningPanel = () => {
-        if (document.getElementById('fly-warning-panel')) return; // No mostrar si ya está visible
+        if (document.getElementById('fly-warning-panel')) return;
 
         const panel = document.createElement('div');
         panel.id = 'fly-warning-panel';
+        panel.className = 'fly-warning-panel animate__animated animate__fadeInRight';
         panel.innerHTML = `
-            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">⚠️ Actividad Sospechosa Detectada</div>
-            <div>Se ha registrado un comportamiento anómalo. La repetición de esta actividad resultará en un bloqueo temporal de tu acceso.</div>
+            <div class="fly-warning-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            </div>
+            <div class="fly-warning-text">
+                <strong>Actividad Sospechosa Detectada</strong>
+                <p>La repetición de esta acción resultará en un bloqueo temporal de tu acceso.</p>
+            </div>
         `;
-        // Estilos del panel
-        Object.assign(panel.style, {
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            backgroundColor: '#ffc107',
-            color: '#333',
-            padding: '20px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-            zIndex: '100000',
-            fontFamily: 'sans-serif',
-            maxWidth: '350px',
-            borderLeft: '5px solid #ff9800'
-        });
-
         document.body.appendChild(panel);
 
         setTimeout(() => {
-            panel.style.transition = 'opacity 0.5s ease';
-            panel.style.opacity = '0';
-            setTimeout(() => document.body.removeChild(panel), 500);
-        }, 5000); // El panel desaparece después de 5 segundos
+            panel.classList.remove('animate__fadeInRight');
+            panel.classList.add('animate__fadeOutRight');
+            setTimeout(() => document.body.removeChild(panel), 1000);
+        }, 5000);
 
-        // Lógica de advertencia/baneo
-        const hasBeenWarned = localStorage.getItem('flySegurityWarning');
-        if (hasBeenWarned) {
+        if (localStorage.getItem('flySecurityWarning')) {
             banUser();
         } else {
-            localStorage.setItem('flySegurityWarning', 'true');
+            localStorage.setItem('flySecurityWarning', 'true');
         }
     };
 
+    // --- MÓDULOS DE PROTECCIÓN (Sin cambios funcionales) ---
 
-    // --- MÓDULOS DE PROTECCIÓN ---
-
-    // 4. ANTI-COPIADO Y CLIC DERECHO
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('selectstart', e => e.preventDefault());
-    document.addEventListener('copy', e => {
-        e.preventDefault();
-        banUser(); // Falta grave, baneo inmediato
-    });
-     document.addEventListener('cut', e => {
-        e.preventDefault();
-        banUser(); // Falta grave, baneo inmediato
-    });
+    document.addEventListener('copy', e => { e.preventDefault(); banUser(); });
+    document.addEventListener('cut', e => { e.preventDefault(); banUser(); });
 
-    // 5. ANTI-HERRAMIENTAS DE DESARROLLADOR Y ATAJOS
-    let devToolsOpen = false;
-    const devToolsDetector = () => {
-        // Este es un truco común, no es infalible pero disuade
+    setInterval(() => {
         const threshold = 160;
         if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
-            if (!devToolsOpen) {
-                devToolsOpen = true;
-                banUser(); // Falta grave, baneo inmediato
-            }
+            banUser();
         }
-    };
-    // Revisar periódicamente
-    setInterval(devToolsDetector, 1000);
+    }, 1000);
 
     document.addEventListener('keydown', e => {
-        // Bloquear F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
         if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase() === 'U')) {
             e.preventDefault();
-            banUser(); // Falta grave, baneo inmediato
+            banUser();
         }
-        // Bloquear Ctrl+P (Imprimir) que puede usarse para guardar como PDF
-        if (e.ctrlKey && e.key.toUpperCase() === 'P') {
-            e.preventDefault();
-        }
+        if (e.ctrlKey && e.key.toUpperCase() === 'P') e.preventDefault();
     });
 
-    // 6. DETECCIÓN DE ACCIONES REPETITIVAS (AUTOMATIZACIÓN)
     let lastActions = { clicks: [], keys: [] };
-
     const detectRepetitiveAction = (type, time) => {
         const now = new Date().getTime();
-        const actions = lastActions[type];
-        actions.push(now);
-
-        // Filtra las acciones que están fuera de la ventana de tiempo
-        lastActions[type] = actions.filter(timestamp => now - timestamp < time);
-
-        // Si el número de acciones supera el umbral, activa la advertencia
+        lastActions[type].push(now);
+        lastActions[type] = lastActions[type].filter(timestamp => now - timestamp < time);
         if (lastActions[type].length > config.actionThreshold[type].count) {
             showWarningPanel();
-            lastActions[type] = []; // Resetea el contador para no lanzar múltiples advertencias
+            lastActions[type] = [];
         }
     };
-
     document.addEventListener('click', () => detectRepetitiveAction('clicks', config.actionThreshold.clicks.time));
     document.addEventListener('keydown', () => detectRepetitiveAction('keys', config.actionThreshold.keys.time));
 
+    // --- MEJORAS DE UI Y NUEVO PANEL ---
 
-    // --- MARCA DE AGUA ESTÉTICA ---
+    const injectStylesAndAnimateCSS = () => {
+        // Cargar Animate.css desde un CDN
+        const animateCSS = document.createElement('link');
+        animateCSS.rel = 'stylesheet';
+        animateCSS.href = 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
+        document.head.appendChild(animateCSS);
 
-    const createWatermark = () => {
+        // Inyectar nuestros estilos personalizados
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = `
+            /* --- Pantalla de Baneo --- */
+            .fly-ban-screen {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background-color: #0c0a10; color: #e0e0e0;
+                display: flex; flex-direction: column; justify-content: center; align-items: center;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; z-index: 99999; text-align: center;
+            }
+            .fly-ban-screen h1 { font-size: 2.8rem; color: #ff3b3b; margin-bottom: 15px; }
+            .fly-ban-screen p { font-size: 1.2rem; margin: 5px 20px; max-width: 600px; }
+
+            /* --- Panel de Advertencia --- */
+            .fly-warning-panel {
+                position: fixed; top: 25px; right: 25px;
+                display: flex; align-items: center;
+                background-color: #fff; color: #333;
+                padding: 15px 20px; border-radius: 12px;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+                z-index: 100000; font-family: 'Segoe UI', sans-serif;
+                max-width: 400px; border: 1px solid #eee;
+            }
+            .fly-warning-icon { margin-right: 15px; }
+            .fly-warning-icon svg { width: 30px; height: 30px; color: #ffa000; }
+            .fly-warning-text strong { font-size: 1rem; }
+            .fly-warning-text p { margin: 4px 0 0; font-size: 0.9rem; color: #555; }
+
+            /* --- Marca de Agua --- */
+            #fly-security-watermark {
+                position: fixed; bottom: 15px; left: 15px;
+                z-index: 99998; cursor: pointer;
+            }
+            #fly-security-watermark img {
+                width: 50px; height: 50px;
+                transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            }
+            #fly-security-watermark:hover img {
+                transform: scale(1.1);
+            }
+
+            /* --- Nuevo Panel de Sitio Protegido --- */
+            #fly-protected-modal {
+                position: fixed; top: 0; left: 0;
+                width: 100%; height: 100%;
+                z-index: 200000;
+                display: flex; justify-content: center; align-items: center;
+                background: radial-gradient(circle, rgba(29, 35, 62, 0.7) 0%, rgba(10, 12, 23, 0.8) 100%);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.5s ease, visibility 0.5s ease;
+            }
+            #fly-protected-modal.visible {
+                opacity: 1;
+                visibility: visible;
+            }
+            .fly-modal-content {
+                text-align: center; color: #fff;
+                font-family: 'Segoe UI', sans-serif;
+            }
+            .fly-modal-content .shield-icon svg {
+                width: 80px; height: 80px;
+                filter: drop-shadow(0 0 15px rgba(0, 191, 255, 0.6));
+            }
+            .fly-modal-content h2 {
+                font-size: 2.5rem; margin: 15px 0 10px;
+                letter-spacing: 1px;
+            }
+            .fly-modal-content p {
+                font-size: 1.1rem; color: #ccc;
+                max-width: 450px;
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    };
+
+    const createWatermarkAndModal = () => {
+        // Contenedor de la marca de agua
         const watermark = document.createElement('a');
-        watermark.href = config.creatorPage;
-        watermark.target = '_blank';
-        watermark.id = 'fly-segurity-watermark';
-
+        watermark.id = 'fly-security-watermark';
+        
         const logo = document.createElement('img');
         logo.src = config.logoUrl;
-        Object.assign(logo.style, {
-            width: '50px',
-            height: '50px',
-            transition: 'transform 0.3s ease'
-        });
-
-        const protectedText = document.createElement('div');
-        protectedText.textContent = 'Página Protegida y Encriptada';
-        Object.assign(protectedText.style, {
-            position: 'absolute',
-            bottom: '120%', // Posicionado encima del logo
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: '#fff',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            fontSize: '12px',
-            whiteSpace: 'nowrap',
-            opacity: '0',
-            visibility: 'hidden',
-            transition: 'opacity 0.3s ease, visibility 0.3s ease'
-        });
-
         watermark.appendChild(logo);
-        watermark.appendChild(protectedText);
         document.body.appendChild(watermark);
+        
+        // Modal de "Sitio Protegido"
+        const modal = document.createElement('div');
+        modal.id = 'fly-protected-modal';
+        modal.innerHTML = `
+            <div class="fly-modal-content animate__animated">
+                <div class="shield-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" style="fill:rgba(0, 191, 255, 0.2); stroke: #00bfff;"></path></svg>
+                </div>
+                <h2>Sitio Protegido</h2>
+                <p>Tu navegación es segura. Este sitio utiliza Fly Security para proteger su contenido contra copias y actividades no autorizadas.</p>
+            </div>
+        `;
+        document.body.appendChild(modal);
 
-        // Estilos del contenedor de la marca de agua
-        Object.assign(watermark.style, {
-            position: 'fixed',
-            bottom: '15px',
-            left: '15px',
-            zIndex: '99998',
-            cursor: 'pointer',
-            textDecoration: 'none'
+        // Event Listeners
+        watermark.addEventListener('click', (e) => {
+            e.preventDefault(); // Previene la redirección si se hace clic
+            modal.classList.add('visible');
+            modal.querySelector('.fly-modal-content').classList.add('animate__zoomIn');
+            modal.querySelector('.fly-modal-content').classList.remove('animate__zoomOut');
         });
-
-        // Animación al mantener presionado
+        
+        // Cierra el modal si se hace clic en el fondo
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                 modal.querySelector('.fly-modal-content').classList.remove('animate__zoomIn');
+                 modal.querySelector('.fly-modal-content').classList.add('animate__zoomOut');
+                 setTimeout(() => {
+                    modal.classList.remove('visible');
+                 }, 500); // Duración de la animación de salida
+            }
+        });
+        
+        // Redirección solo si se mantiene presionado (opcional, como un "easter egg")
         let pressTimer;
         watermark.addEventListener('mousedown', () => {
-            logo.style.transform = 'scale(1.2)';
-            protectedText.style.visibility = 'visible';
-            protectedText.style.opacity = '1';
             pressTimer = setTimeout(() => {
-                // Si quieres que pase algo después de un tiempo largo, ponlo aquí
-            }, 1000);
+                window.open(config.creatorPage, '_blank');
+            }, 1500); // 1.5 segundos para abrir la página del creador
         });
-        watermark.addEventListener('mouseup', () => {
-            logo.style.transform = 'scale(1)';
-            protectedText.style.opacity = '0';
-            protectedText.style.visibility = 'hidden';
-            clearTimeout(pressTimer);
-        });
-        watermark.addEventListener('mouseleave', () => { // También si el mouse se va
-            logo.style.transform = 'scale(1)';
-            protectedText.style.opacity = '0';
-            protectedText.style.visibility = 'hidden';
-            clearTimeout(pressTimer);
-        });
+        watermark.addEventListener('mouseup', () => clearTimeout(pressTimer));
+        watermark.addEventListener('mouseleave', () => clearTimeout(pressTimer));
     };
+
 
     // --- INICIALIZACIÓN ---
     document.addEventListener('DOMContentLoaded', () => {
         checkBanStatus();
-        createWatermark();
+        injectStylesAndAnimateCSS();
+        createWatermarkAndModal();
     });
 
 })();
