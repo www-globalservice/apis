@@ -95,16 +95,19 @@ function displayPaginatedContent() {
         
         const imageUrl = item.portada && item.portada.startsWith('http') ? item.portada : 'https://i.ibb.co/bFqfL5Q/placeholder.png';
 
+        // **CAMBIO 2: Se eliminó loading="lazy" para cargar las imágenes inmediatamente**
         contentItem.innerHTML = `
             <div class="image-container">
-                <img src="${imageUrl}" alt="Portada de ${item.nombre}" loading="lazy">
+                <img src="${imageUrl}" alt="Portada de ${item.nombre}">
             </div>
             <h3>${item.nombre}</h3>
         `;
         
         contentItem.addEventListener('click', () => {
             if (item.link) {
-                window.open(item.link, '_blank');
+                // **CAMBIO 1: Se antepone la URL del reproductor al enlace original**
+                const playerUrl = `https://serviciosgenerales.zya.me/service.php?i=${item.link}`;
+                window.open(playerUrl, '_blank');
             } else {
                 alert('Lo siento, no hay un enlace disponible para este contenido.');
             }
@@ -145,7 +148,7 @@ function filterContent() {
     displayPaginatedContent();
 }
 
-// --- Event Listeners (Lógica original sin cambios) ---
+// --- Event Listeners ---
 
 // Filtros
 categoryFilter.addEventListener('change', filterContent);
@@ -174,9 +177,6 @@ window.addEventListener('resize', () => {
     setItemsPerPage();
     displayPaginatedContent();
 });
-
-
-// --- NUEVOS EVENT LISTENERS PARA NAVEGACIÓN ---
 
 // Event listener para el botón de hamburguesa
 menuToggle.addEventListener('click', () => {
