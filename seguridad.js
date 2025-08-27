@@ -1,20 +1,18 @@
 /**
- * Fly Security v2.0 - Professional Edition
- * Un sistema de seguridad web mejorado con enfoque en la disuasión, la experiencia de usuario y una estética profesional.
- * Incluye un panel de estado animado, integración de Animate.css y estilos optimizados.
+ * Fly Security v3.2
  */
 
 (function() {
     // --- CONFIGURACIÓN INICIAL ---
     const config = {
         // URL a la que redirige el logo. ¡Cámbiala por tu página!
-        creatorPage: "https://tu-pagina-web.com",
+        creatorPage: "#",
         // URL del logo para la marca de agua (opcional, ahora usamos SVG)
-        logoUrl: "https://i.ibb.co/jkQWRSkM/Fly-Segurity.png",
+        logoUrl: "https://i.ibb.co/prdSf9qW/Fly-segurity-27-08-2025.png",
         // Sensibilidad para la detección de acciones repetitivas
         actionThreshold: {
-            clicks: { count: 20, time: 3000 }, // 20 clicks en 3s
-            keys: { count: 30, time: 3000 }   // 30 pulsaciones en 3s
+            clicks: { count: 50, time: 3000 }, // 20 clicks en 3s
+            keys: { count: 50, time: 3000 }   // 30 pulsaciones en 3s
         }
     };
 
@@ -212,7 +210,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" style="fill:rgba(0, 191, 255, 0.2); stroke: #00bfff;"></path></svg>
                 </div>
                 <h2>Sitio Protegido</h2>
-                <p>Tu navegación es segura. Este sitio utiliza Fly Security para proteger su contenido contra copias y actividades no autorizadas.</p>
+                <p>Tu navegación es segura. <br>Este sitio utiliza Fly Security para proteger el contenido.</p>
             </div>
         `;
         document.body.appendChild(modal);
