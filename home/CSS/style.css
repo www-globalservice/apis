@@ -1,0 +1,286 @@
+/* --- GOOGLE FONTS --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* --- VARIABLES DE DISEÑO --- */
+:root {
+  /* Paleta de colores inspirada en tu CSS, pero refinada */
+  --color-background: #101010; /* Un negro un poco más suave */
+  --color-primary: #181818;   /* Color para las tarjetas y elementos primarios */
+  --color-secondary: #2a2a2a; /* Color para bordes y acentos sutiles */
+  --color-accent: #e50914;    /* El rojo icónico para llamadas a la acción */
+  --color-accent-hover: #f40612; /* Rojo más brillante para interacciones */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0a0;
+
+  /* Tipografía */
+  --font-family: 'Poppins', sans-serif;
+
+  /* Espaciado y Bordes */
+  --spacing-xs: 0.5rem;  /* 8px */
+  --spacing-sm: 1rem;    /* 16px */
+  --spacing-md: 1.5rem;  /* 24px */
+  --spacing-lg: 2rem;    /* 32px */
+  --border-radius: 12px; /* Bordes más redondeados y modernos */
+
+  /* Transiciones y Sombras */
+  --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.2), 0 6px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* --- ESTILOS GENERALES Y RESET --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* --- PRELOADER Y VISIBILIDAD DE CONTENIDO --- */
+#preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.75s ease, visibility 0.75s ease;
+}
+
+#preloader.hidden {
+  opacity: 0;
+  visibility: hidden; /* Evita interacción con el preloader oculto */
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--color-secondary);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-sm);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#main-content {
+  transition: opacity 0.5s ease-in;
+}
+
+#main-content.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* --- ANIMACIÓN DE ENTRADA --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- ENCABEZADO PRINCIPAL --- */
+.main-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.main-header .logo {
+  width: 40px;
+  height: 40px;
+}
+
+.main-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+/* --- CONTENIDO PRINCIPAL --- */
+main {
+  padding: 0 var(--spacing-md) var(--spacing-lg);
+}
+
+.content-row {
+  margin-top: var(--spacing-lg);
+  /* Aplicamos la animación de entrada a cada fila */
+  animation: fadeInUp 0.5s var(--transition-smooth) both;
+}
+
+.row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.row-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.view-more-btn {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius);
+  transition: background-color var(--transition-smooth), color var(--transition-smooth);
+}
+
+.view-more-btn:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-text-primary);
+}
+
+/* --- ESTILOS DEL CARRUSEL --- */
+.carousel-container {
+  display: flex;
+  gap: var(--spacing-sm);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-md); /* Espacio para la sombra y el scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent) transparent;
+}
+
+/* Estilos para el scrollbar en Webkit (Chrome, Safari) */
+.carousel-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.carousel-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.carousel-container::-webkit-scrollbar-thumb {
+  background-color: var(--color-secondary);
+  border-radius: 10px;
+  border: 2px solid transparent;
+}
+
+.carousel-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-accent);
+}
+
+/* --- TARJETA DE CONTENIDO (PELÍCULA/SERIE) --- */
+.content-card {
+  /* Flex-shrink evita que las tarjetas se encojan */
+  flex: 0 0 auto;
+  width: 160px;
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.content-card:hover {
+  transform: scale(1.08) translateY(-8px);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--color-accent);
+}
+
+.card-image-container {
+  width: 100%;
+  /* Proporción de póster (aprox 2:3) */
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+}
+
+.card-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-smooth);
+}
+
+.content-card:hover .card-image-container img {
+  transform: scale(1.1);
+}
+
+.content-card h3 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: var(--spacing-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- DISEÑO RESPONSIVO --- */
+
+/* Tablets (a partir de 768px) */
+@media (min-width: 768px) {
+  .main-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  main {
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+  }
+
+  .row-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .content-card {
+    width: 180px;
+  }
+}
+
+/* Escritorios (a partir de 1024px) */
+@media (min-width: 1024px) {
+  .carousel-container {
+    gap: var(--spacing-md);
+  }
+  
+  .content-card {
+    width: 200px;
+  }
+
+}
