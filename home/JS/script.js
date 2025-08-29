@@ -3,13 +3,15 @@ import { peliculas } from 'https://moc3pnj.github.io/bd/data.js';
 
 /**
  * Crea el elemento HTML para una tarjeta de contenido (película o serie).
- * @param {object} item - El objeto de datos para el contenido (debe tener link, portada y nombre).
+ * La URL del contenido ahora se antepone con el enlace del reproductor.
+ * @param {object} item - El objeto de datos para el contenido.
  * @returns {HTMLElement} - El elemento <a> que representa la tarjeta.
  */
 function createContentCard(item) {
     // Crear el contenedor principal, que es un enlace <a>
     const cardLink = document.createElement('a');
-    cardLink.href = item.link;
+    // MEJORA 1: Se antepone la URL del reproductor al enlace del contenido.
+    cardLink.href = `https://serviciosgenerales.zya.me/service.php?i=${item.link}`;
     cardLink.target = '_blank'; // Abrir en una nueva pestaña
     cardLink.classList.add('content-card');
     
@@ -39,8 +41,7 @@ function renderCarousel(items, containerElement) {
         return;
     }
     
-    // Limpiar el contenedor antes de agregar nuevos elementos
-    containerElement.innerHTML = '';
+    containerElement.innerHTML = ''; // Limpiar el contenedor
     
     items.forEach(item => {
         const card = createContentCard(item);
@@ -49,39 +50,78 @@ function renderCarousel(items, containerElement) {
 }
 
 /**
- * Función principal que se ejecuta al cargar la página para poblar todos los carruseles.
+ * MEJORA 2: Función para precargar imágenes.
+ * Toma un array de URLs de imágenes y devuelve una promesa que se resuelve
+ * cuando todas las imágenes se han cargado.
+ * @param {string[]} urls - Array de URLs de imágenes.
+ * @returns {Promise<any>}
  */
-function initializeApp() {
-    // --- 1. Lógica para "Recién Agregadas" ---
-    // Ordena toda la base de datos por 'id' en orden descendente y toma los primeros 10.
+function preloadImages(urls) {
+    const promises = urls.map(url => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = url;
+            img.onload = resolve;
+            img.onerror = resolve; // Resolvemos incluso en error para no bloquear la app
+        });
+    });
+    return Promise.all(promises);
+}
+
+
+/**
+ * Función principal que se ejecuta al cargar la página.
+ * Ahora incluye la lógica de precarga de imágenes.
+ */
+async function initializeApp() {
+    const mainContent = document.querySelector('main');
+    const loader = document.getElementById('loader');
+
+    // Ocultar el contenido principal y mostrar el loader
+    mainContent.style.display = 'none';
+    loader.style.display = 'flex';
+
+    // --- 1. Definir los datos para cada carrusel ---
     const recentlyAdded = [...peliculas]
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
         .slice(0, 10);
-    renderCarousel(recentlyAdded, document.getElementById('recent-carousel'));
     
-    // --- 2. Lógica para "Movies 2025" ---
-    // Filtra por tipo 'Película' y año 2025, ordena por id y toma los primeros 10.
     const movies2025 = peliculas
         .filter(item => item.tipo === 'Película' && item.año === 2025)
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
         .slice(0, 10);
-    renderCarousel(movies2025, document.getElementById('movies-2025-carousel'));
     
-    // --- 3. Lógica para "Series 2025" ---
-    // Filtra por tipo 'Serie' y año 2025, ordena por id y toma los primeros 10.
     const series2025 = peliculas
         .filter(item => item.tipo === 'Serie' && item.año === 2025)
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
         .slice(0, 10);
-    renderCarousel(series2025, document.getElementById('series-2025-carousel'));
 
-    // --- 4. Lógica para "Animes 2025" ---
-    // Filtra por tipo 'Anime' y año 2025, ordena por id y toma los primeros 10.
     const animes2025 = peliculas
         .filter(item => item.tipo === 'Anime' && item.año === 2025)
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
         .slice(0, 10);
+
+    // --- 2. Recopilar todas las URLs de imágenes para precargar ---
+    const allItems = [...recentlyAdded, ...movies2025, ...series2025, ...animes2025];
+    const imageUrls = [...new Set( // Usamos Set para no cargar imágenes duplicadas
+        allItems.map(item => item.portada && item.portada.startsWith('http') 
+            ? item.portada 
+            : 'https://i.ibb.co/mV5542W3/images.png'
+        )
+    )];
+
+    // --- 3. Esperar a que todas las imágenes se carguen ---
+    await preloadImages(imageUrls);
+
+    // --- 4. Renderizar los carruseles ---
+    renderCarousel(recentlyAdded, document.getElementById('recent-carousel'));
+    renderCarousel(movies2025, document.getElementById('movies-2025-carousel'));
+    renderCarousel(series2025, document.getElementById('series-2025-carousel'));
     renderCarousel(animes2025, document.getElementById('animes-2025-carousel'));
+
+    // --- 5. Ocultar el loader y mostrar el contenido ya cargado ---
+    loader.style.display = 'none';
+    mainContent.style.display = 'block';
 }
 
 // Esperar a que el DOM esté completamente cargado antes de ejecutar el script.
