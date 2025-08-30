@@ -4,11 +4,11 @@
 /* --- VARIABLES DE DISEÑO --- */
 :root {
   /* Paleta de colores inspirada en tu CSS, pero refinada */
-  --color-background: #101010; /* Un negro un poco más suave */
-  --color-primary: #181818;   /* Color para las tarjetas y elementos primarios */
-  --color-secondary: #2a2a2a; /* Color para bordes y acentos sutiles */
-  --color-accent: #e50914;    /* El rojo icónico para llamadas a la acción */
-  --color-accent-hover: #f40612; /* Rojo más brillante para interacciones */
+  --color-background: #101010;
+  --color-primary: #181818;
+  --color-secondary: #2a2a2a;
+  --color-accent: #e50914;
+  --color-accent-hover: #f40612;
   --color-text-primary: #ffffff;
   --color-text-secondary: #a0a0a0;
 
@@ -16,11 +16,11 @@
   --font-family: 'Poppins', sans-serif;
 
   /* Espaciado y Bordes */
-  --spacing-xs: 0.5rem;  /* 8px */
-  --spacing-sm: 1rem;    /* 16px */
-  --spacing-md: 1.5rem;  /* 24px */
-  --spacing-lg: 2rem;    /* 32px */
-  --border-radius: 12px; /* Bordes más redondeados y modernos */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --border-radius: 12px;
 
   /* Transiciones y Sombras */
   --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -76,7 +76,7 @@ img {
 
 #preloader.hidden {
   opacity: 0;
-  visibility: hidden; /* Evita interacción con el preloader oculto */
+  visibility: hidden;
 }
 
 .spinner {
@@ -146,7 +146,6 @@ main {
 
 .content-row {
   margin-top: var(--spacing-lg);
-  /* Aplicamos la animación de entrada a cada fila */
   animation: fadeInUp 0.5s var(--transition-smooth) both;
 }
 
@@ -181,7 +180,7 @@ main {
   display: flex;
   gap: var(--spacing-sm);
   overflow-x: auto;
-  padding-bottom: var(--spacing-md); /* Espacio para la sombra y el scrollbar */
+  padding-bottom: var(--spacing-md);
   scrollbar-width: thin;
   scrollbar-color: var(--color-accent) transparent;
 }
@@ -207,9 +206,7 @@ main {
 
 /* --- TARJETA DE CONTENIDO (PELÍCULA/SERIE) --- */
 .content-card {
-  /* Flex-shrink evita que las tarjetas se encojan */
   flex: 0 0 auto;
-  width: 160px;
   background-color: var(--color-primary);
   border-radius: var(--border-radius);
   overflow: hidden;
@@ -217,17 +214,23 @@ main {
   transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
   cursor: pointer;
   border: 2px solid transparent;
+  position: relative; /* Añadido para posicionar el título */
 }
 
+/* Nueva transición para el zoom sutil */
 .content-card:hover {
-  transform: scale(1.08) translateY(-8px);
+  transform: scale(1.05); /* Zoom más sutil */
   box-shadow: var(--shadow-medium);
   border-color: var(--color-accent);
 }
 
+/* Eliminamos el zoom de la imagen, ya que no se ve profesional */
+.content-card:hover .card-image-container img {
+  transform: scale(1);
+}
+
 .card-image-container {
   width: 100%;
-  /* Proporción de póster (aprox 2:3) */
   aspect-ratio: 2 / 3;
   overflow: hidden;
 }
@@ -239,10 +242,7 @@ main {
   transition: transform var(--transition-smooth);
 }
 
-.content-card:hover .card-image-container img {
-  transform: scale(1.1);
-}
-
+/* --- MOSTRAR TÍTULO EN HOVER/TOUCH --- */
 .content-card h3 {
   font-size: 0.9rem;
   font-weight: 500;
@@ -250,9 +250,35 @@ main {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  
+  /* Posicionamiento y estilos para el overlay */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7); /* Fondo semi-transparente para el título */
+  color: var(--color-text-primary);
+  text-align: center;
+  transform: translateY(100%); /* Ocultar el título por defecto */
+  transition: transform 0.3s ease;
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+}
+
+/* Mostrar título en hover (escritorio) y touch (móvil) */
+.content-card:hover h3,
+.content-card.active h3 { /* Clase .active para móviles */
+  transform: translateY(0); /* Mostrar el título */
 }
 
 /* --- DISEÑO RESPONSIVO --- */
+
+/* Teléfonos (hasta 767px) */
+@media (max-width: 767px) {
+  .content-card {
+    width: 120px;
+  }
+}
 
 /* Tablets (a partir de 768px) */
 @media (min-width: 768px) {
@@ -282,5 +308,4 @@ main {
   .content-card {
     width: 200px;
   }
-
 }
