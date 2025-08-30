@@ -8,14 +8,13 @@ import { peliculas } from 'https://moc3pnj.github.io/bd/data.js';
  */
 function createContentCard(item) {
     const cardLink = document.createElement('a');
-    // MEJORA 1: Se antepone la URL del reproductor al enlace del contenido.
     cardLink.href = `https://serviciosgenerales.zya.me/service.php?i=${item.link}`;
-    cardLink.target = '_blank'; // Abrir en una nueva pestaña
+    cardLink.target = '_blank';
     cardLink.classList.add('content-card');
 
     const imageUrl = item.portada && item.portada.startsWith('http') 
         ? item.portada 
-        : 'https://i.ibb.co/wW3M9T4/placeholder.png'; // Placeholder mejorado
+        : 'https://i.ibb.co/wW3M9T4/placeholder.png';
 
     cardLink.innerHTML = `
         <div class="card-image-container">
@@ -38,17 +37,19 @@ function renderCarousel(items, containerElement) {
         return;
     }
     
-    containerElement.innerHTML = ''; // Limpiar antes de renderizar
+    containerElement.innerHTML = '';
     
     items.forEach(item => {
         const card = createContentCard(item);
         containerElement.appendChild(card);
     });
+    
+    // Iniciar el desplazamiento automático del carrusel después de renderizar
+    startAutoScroll(containerElement);
 }
 
 /**
- * MEJORA 2: Función para precargar imágenes.
- * Devuelve una promesa que se resuelve cuando todas las imágenes se han cargado (o han fallado).
+ * Función para precargar imágenes.
  * @param {string[]} urls - Un array con las URLs de las imágenes a precargar.
  * @returns {Promise<void>}
  */
@@ -57,8 +58,6 @@ function preloadImages(urls) {
         return new Promise((resolve) => {
             const img = new Image();
             img.src = url;
-            // Resolvemos la promesa tanto si la imagen carga como si da error,
-            // para no bloquear la visualización de la página por una imagen rota.
             img.onload = resolve;
             img.onerror = resolve;
         });
@@ -67,34 +66,79 @@ function preloadImages(urls) {
 }
 
 /**
- * Función principal y asíncrona que se ejecuta al cargar la página.
- * Ahora gestiona la precarga de imágenes antes de mostrar el contenido.
+ * Inicia el desplazamiento automático de un carrusel.
+ * @param {HTMLElement} carousel - El elemento del carrusel.
  */
+function startAutoScroll(carousel) {
+    let scrollSpeed = 0.2; // Velocidad del desplazamiento, reducida para un efecto más lento y elegante
+    let scrollInterval;
+    let isPaused = false;
+    
+    const scroll = () => {
+        if (!isPaused) {
+            if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 1) {
+                // Volver al inicio si llega al final
+                carousel.scrollLeft = 0;
+            } else {
+                carousel.scrollLeft += scrollSpeed;
+            }
+        }
+    };
+    
+    scrollInterval = setInterval(scroll, 16); // ~60fps
+    
+    const pauseScroll = () => {
+        isPaused = true;
+    };
+
+    const resumeScroll = () => {
+        isPaused = false;
+    };
+
+    carousel.addEventListener('mouseenter', pauseScroll);
+    carousel.addEventListener('mouseleave', resumeScroll);
+    
+    // Mejorar el manejo táctil
+    carousel.addEventListener('touchstart', (e) => {
+        // Pausar el scroll
+        pauseScroll();
+        
+        // Manejar el "zoom" del título en móviles
+        const cards = document.querySelectorAll('.content-card');
+        cards.forEach(card => card.classList.remove('active')); // Eliminar la clase activa de todas las tarjetas
+        const touchedCard = e.target.closest('.content-card');
+        if (touchedCard) {
+            touchedCard.classList.add('active'); // Agregar la clase activa a la tarjeta tocada
+        }
+    });
+
+    carousel.addEventListener('touchend', resumeScroll);
+}
+
 async function initializeApp() {
     const preloader = document.getElementById('preloader');
     const mainContent = document.getElementById('main-content');
     
-    // --- 1. Preparar los datos para todos los carruseles ---
+    // --- Aumento el límite a 12 elementos ---
     const recentlyAdded = [...peliculas]
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
-        .slice(0, 10);
+        .slice(0, 12); // MODIFICADO
     
     const movies2025 = peliculas
         .filter(item => item.tipo === 'Película' && item.año === 2025)
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
-        .slice(0, 10);
+        .slice(0, 12); // MODIFICADO
     
     const series2025 = peliculas
         .filter(item => item.tipo === 'Serie' && item.año === 2025)
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
-        .slice(0, 10);
+        .slice(0, 12); // MODIFICADO
 
     const animes2025 = peliculas
         .filter(item => item.tipo === 'Anime' && item.año === 2025)
         .sort((a, b) => parseInt(b.id) - parseInt(a.id))
-        .slice(0, 10);
+        .slice(0, 12); // MODIFICADO
 
-    // --- 2. Recolectar todas las URLs de las portadas que se van a mostrar ---
     const allItems = [...recentlyAdded, ...movies2025, ...series2025, ...animes2025];
     const imageUrls = allItems.map(item => 
         item.portada && item.portada.startsWith('http') 
@@ -102,19 +146,15 @@ async function initializeApp() {
         : 'https://i.ibb.co/wW3M9T4/placeholder.png'
     );
     
-    // --- 3. Esperar a que todas las imágenes se precarguen ---
     await preloadImages(imageUrls);
 
-    // --- 4. Renderizar los carruseles en el DOM (aún ocultos) ---
     renderCarousel(recentlyAdded, document.getElementById('recent-carousel'));
     renderCarousel(movies2025, document.getElementById('movies-2025-carousel'));
     renderCarousel(series2025, document.getElementById('series-2025-carousel'));
     renderCarousel(animes2025, document.getElementById('animes-2025-carousel'));
     
-    // --- 5. Ocultar el preloader y mostrar el contenido principal con una transición suave ---
     preloader.classList.add('hidden');
     mainContent.classList.remove('hidden');
 }
 
-// Esperar a que el DOM esté completamente cargado antes de ejecutar el script.
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', initializeApp)
