@@ -21,7 +21,7 @@
             keys: { count: 50, time: 3000 }   // 30 pulsaciones en 3s
         },
         // URL de redirección en caso de pérdida de conexión
-        errorRedirectUrl: "https://paginadeerror.tv"
+        errorRedirectUrl: "http://action_exit"
     };
 
     // --- LÓGICA DE SEGURIDAD (Sin cambios funcionales mayores) ---
