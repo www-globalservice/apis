@@ -1,5 +1,11 @@
 /**
  * Fly Security v3.2
+ *
+ * **Novedades v3.2:**
+ * - Nuevo módulo de verificación de conexión en tiempo real.
+ * - Pantalla de error de conexión con temporizador de 30 segundos.
+ * - Redirección automática si no se recupera la conexión.
+ * - Mensaje de "Conexión Recuperada" al volver a estar en línea.
  */
 
 (function() {
@@ -13,7 +19,9 @@
         actionThreshold: {
             clicks: { count: 50, time: 3000 }, // 20 clicks en 3s
             keys: { count: 50, time: 3000 }   // 30 pulsaciones en 3s
-        }
+        },
+        // URL de redirección en caso de pérdida de conexión
+        errorRedirectUrl: "https://paginadeerror.tv"
     };
 
     // --- LÓGICA DE SEGURIDAD (Sin cambios funcionales mayores) ---
@@ -142,16 +150,25 @@
             .fly-warning-text p { margin: 4px 0 0; font-size: 0.9rem; color: #555; }
 
             /* --- Marca de Agua --- */
-            #fly-security-watermark {
+            #fly-security-watermark-container {
                 position: fixed; bottom: 15px; left: 15px;
                 z-index: 99998; cursor: pointer;
+                display: flex; align-items: center;
             }
-            #fly-security-watermark img {
+            #fly-security-watermark-container a img {
                 width: 50px; height: 50px;
                 transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             }
-            #fly-security-watermark:hover img {
+            #fly-security-watermark-container a:hover img {
                 transform: scale(1.1);
+            }
+            #fly-connection-timer {
+                margin-left: 10px;
+                font-family: 'Arial', sans-serif;
+                font-size: 1.2rem;
+                color: #e0e0e0;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+                display: none; /* Se mostrará con JS */
             }
 
             /* --- Nuevo Panel de Sitio Protegido --- */
@@ -187,20 +204,63 @@
                 font-size: 1.1rem; color: #ccc;
                 max-width: 450px;
             }
+
+            /* --- Pantalla de Error de Conexión --- */
+            #fly-connection-error-screen {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                z-index: 200001;
+                display: none; /* Se muestra con JS */
+                justify-content: center; align-items: center;
+                text-align: center;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                color: #e0e0e0;
+                font-family: 'Segoe UI', sans-serif;
+            }
+            #fly-connection-error-screen .error-content {
+                animation: fadeInZoom 0.8s ease-out;
+            }
+            #fly-connection-error-screen h2 {
+                font-size: 2.5rem; color: #ff6347; margin-bottom: 10px;
+            }
+            #fly-connection-error-screen p {
+                font-size: 1.2rem; margin: 10px 20px;
+            }
+            #fly-connection-error-timer {
+                font-size: 1.8rem;
+                color: #ffcc00;
+                margin-top: 20px;
+            }
+            @keyframes fadeInZoom {
+                from { opacity: 0; transform: scale(0.95); }
+                to { opacity: 1; transform: scale(1); }
+            }
         `;
         document.head.appendChild(styleSheet);
     };
 
     const createWatermarkAndModal = () => {
         // Contenedor de la marca de agua
+        const watermarkContainer = document.createElement('div');
+        watermarkContainer.id = 'fly-security-watermark-container';
+
         const watermark = document.createElement('a');
         watermark.id = 'fly-security-watermark';
-        
+
         const logo = document.createElement('img');
         logo.src = config.logoUrl;
         watermark.appendChild(logo);
-        document.body.appendChild(watermark);
-        
+        watermarkContainer.appendChild(watermark);
+
+        // Cronómetro de conexión (oculto por defecto)
+        const connectionTimer = document.createElement('span');
+        connectionTimer.id = 'fly-connection-timer';
+        connectionTimer.textContent = '0s';
+        watermarkContainer.appendChild(connectionTimer);
+
+        document.body.appendChild(watermarkContainer);
+
         // Modal de "Sitio Protegido"
         const modal = document.createElement('div');
         modal.id = 'fly-protected-modal';
@@ -214,37 +274,140 @@
             </div>
         `;
         document.body.appendChild(modal);
+        
+        // Pantalla de error de conexión
+        const errorScreen = document.createElement('div');
+        errorScreen.id = 'fly-connection-error-screen';
+        errorScreen.innerHTML = `
+            <div class="error-content">
+                <h2>Error: Conexión Perdida</h2>
+                <p>Se ha detectado una pérdida de conexión a la red.</p>
+                <p>Tienes <span id="fly-connection-error-timer">30</span> segundos para recuperarla.</p>
+            </div>
+        `;
+        document.body.appendChild(errorScreen);
 
         // Event Listeners
         watermark.addEventListener('click', (e) => {
-            e.preventDefault(); // Previene la redirección si se hace clic
+            e.preventDefault();
             modal.classList.add('visible');
             modal.querySelector('.fly-modal-content').classList.add('animate__zoomIn');
             modal.querySelector('.fly-modal-content').classList.remove('animate__zoomOut');
         });
-        
-        // Cierra el modal si se hace clic en el fondo
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                  modal.querySelector('.fly-modal-content').classList.remove('animate__zoomIn');
                  modal.querySelector('.fly-modal-content').classList.add('animate__zoomOut');
                  setTimeout(() => {
                     modal.classList.remove('visible');
-                 }, 500); // Duración de la animación de salida
+                 }, 500);
             }
         });
-        
-        // Redirección solo si se mantiene presionado (opcional, como un "easter egg")
+
         let pressTimer;
         watermark.addEventListener('mousedown', () => {
             pressTimer = setTimeout(() => {
                 window.open(config.creatorPage, '_blank');
-            }, 1500); // 1.5 segundos para abrir la página del creador
+            }, 1500);
         });
         watermark.addEventListener('mouseup', () => clearTimeout(pressTimer));
         watermark.addEventListener('mouseleave', () => clearTimeout(pressTimer));
     };
 
+    // --- NUEVA LÓGICA DE VERIFICACIÓN DE CONEXIÓN ---
+
+    let connectionTimerId = null;
+    let secondsLeft = 0;
+    const CONNECTION_CHECK_INTERVAL = 1000;
+    const CONNECTION_LOSS_TIMEOUT = 5000; // 5 segundos para mostrar el timer
+    const MAX_DISCONNECTION_TIME = 30; // 30 segundos para la redirección
+
+    const showConnectionErrorScreen = (show) => {
+        const screen = document.getElementById('fly-connection-error-screen');
+        if (screen) {
+            screen.style.display = show ? 'flex' : 'none';
+        }
+    };
+    
+    const showConnectionRecoveredMessage = () => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'fly-warning-panel animate__animated animate__fadeInRight';
+        messageDiv.style.cssText = `
+            position: fixed; top: 25px; right: 25px;
+            display: flex; align-items: center;
+            background-color: #4CAF50; color: white;
+            padding: 15px 20px; border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            z-index: 100001; font-family: 'Segoe UI', sans-serif;
+            max-width: 400px;
+        `;
+        messageDiv.innerHTML = `
+            <div style="margin-right: 15px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 30px; height: 30px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+            </div>
+            <div>
+                <strong>Conexión Recuperada</strong>
+                <p style="margin: 4px 0 0; font-size: 0.9rem; color: #E8F5E9;">¡Bienvenido de nuevo!</p>
+            </div>
+        `;
+        document.body.appendChild(messageDiv);
+    
+        setTimeout(() => {
+            messageDiv.classList.remove('animate__fadeInRight');
+            messageDiv.classList.add('animate__fadeOutRight');
+            setTimeout(() => document.body.removeChild(messageDiv), 1000);
+        }, 3000);
+    };
+
+    const handleOffline = () => {
+        const timerElement = document.getElementById('fly-connection-timer');
+        const errorTimerElement = document.getElementById('fly-connection-error-timer');
+
+        if (!connectionTimerId) {
+            secondsLeft = MAX_DISCONNECTION_TIME;
+            
+            // Muestra el timer al lado del logo
+            if (timerElement) {
+                timerElement.textContent = `...`;
+                setTimeout(() => {
+                    timerElement.style.display = 'block';
+                }, CONNECTION_LOSS_TIMEOUT);
+            }
+            
+            showConnectionErrorScreen(true);
+            
+            // Inicia el cronómetro de la pantalla de error
+            connectionTimerId = setInterval(() => {
+                secondsLeft--;
+                if (timerElement) timerElement.textContent = `${secondsLeft}s`;
+                if (errorTimerElement) errorTimerElement.textContent = `${secondsLeft}`;
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(connectionTimerId);
+                    window.location.href = config.errorRedirectUrl;
+                }
+            }, 1000);
+        }
+    };
+
+    const handleOnline = () => {
+        if (connectionTimerId) {
+            clearInterval(connectionTimerId);
+            connectionTimerId = null;
+            showConnectionErrorScreen(false);
+            showConnectionRecoveredMessage();
+            
+            const timerElement = document.getElementById('fly-connection-timer');
+            if (timerElement) {
+                timerElement.style.display = 'none';
+            }
+        }
+    };
+
+    // Usamos el 'online' y 'offline' de la ventana para una mejor gestión
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     // --- INICIALIZACIÓN ---
     document.addEventListener('DOMContentLoaded', () => {
