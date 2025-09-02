@@ -1,5 +1,5 @@
 /* --- GOOGLE FONTS --- */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 /* --- VARIABLES DE DISEÑO --- */
 :root {
@@ -376,26 +376,15 @@ main {
   gap: var(--spacing-sm);
   overflow-x: auto;
   padding-bottom: var(--spacing-md);
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-accent) transparent;
+  
+  /* Ocultar barra de desplazamiento para navegadores basados en WebKit (Chrome, Safari) */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
+/* Ocultar barra de desplazamiento con pseudoclase para navegadores WebKit */
 .carousel-container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.carousel-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.carousel-container::-webkit-scrollbar-thumb {
-  background-color: var(--color-secondary);
-  border-radius: 10px;
-  border: 2px solid transparent;
-}
-
-.carousel-container::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-accent);
+  display: none;
 }
 
 /* --- TARJETA DE CONTENIDO (PELÍCULA/SERIE) --- */
@@ -496,6 +485,8 @@ main {
         padding-top: calc(var(--spacing-lg) * 3); /* Espacio superior para UI del móvil */
         gap: 0; /* Controlar espaciado con padding en 'li' */
         z-index: 999;
+        /* Permitir desplazamiento si el contenido excede la altura de la pantalla */
+        overflow-y: auto;
     }
 
     .nav-links.active {
@@ -563,6 +554,7 @@ main {
     
     .submenu-parent.open .submenu {
         max-height: 500px; /* Altura suficiente para mostrar todos los items */
+        overflow-y: auto; /* Permitir el desplazamiento dentro del submenú si es necesario */
     }
 
     .submenu a {
@@ -586,6 +578,7 @@ main {
     .submenu-parent:hover .submenu {
        display: block; /* Mantenemos el hover para tablets sin js */
        max-height: 500px; /* Pero se prioriza el .open via JS */
+       overflow-y: auto;
     }
     .submenu-parent.open .submenu {
         display: block;
