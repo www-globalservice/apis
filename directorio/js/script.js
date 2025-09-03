@@ -9,30 +9,28 @@ const prevButton = document.getElementById('prev-button');
 const nextButton = document.getElementById('next-button');
 const paginationControls = document.querySelector('.pagination-controls');
 
-// --- NUEVOS ELEMENTOS DEL DOM PARA LA NAVEGACIÓN ---
-const sidebar = document.querySelector('.sidebar');
-const menuToggle = document.getElementById('menu-toggle');
-const overlay = document.querySelector('.overlay');
-
+// --- ELIMINADO: Se quitaron las constantes para sidebar, menu-toggle y overlay ---
 
 // --- Estado de la aplicación ---
 let allContent = [];
 let currentFilteredItems = [];
 let currentPage = 1;
-let itemsPerPage = 20; // Valor por defecto
-
-// --- Funciones ---
+let itemsPerPage = 20;
 
 // Determina cuántos elementos mostrar por página según el ancho de la pantalla
 const setItemsPerPage = () => {
-    // El punto de quiebre 768px coincide con el CSS para vistas de teléfono/tableta
-    itemsPerPage = window.innerWidth <= 768 ? 21 : 20;
+    if (window.innerWidth <= 480) {
+        itemsPerPage = 18;
+    } else if (window.innerWidth <= 768) {
+        itemsPerPage = 20;
+    } else {
+        itemsPerPage = 25;
+    }
 };
 
 // Función principal para obtener y mostrar datos iniciales
 async function initializeApp() {
     try {
-        // Ordena el contenido por año descendente desde el principio
         allContent = peliculas.sort((a, b) => b.año - a.año);
         currentFilteredItems = [...allContent];
 
@@ -49,11 +47,12 @@ async function initializeApp() {
 function populateFilters() {
     const categories = new Set();
     allContent.forEach(item => {
-        item.categoria.split(',').forEach(cat => categories.add(cat.trim()));
+        if (item.categoria) {
+            item.categoria.split(',').forEach(cat => categories.add(cat.trim()));
+        }
     });
-    // Ordenar alfabéticamente las categorías
     const sortedCategories = Array.from(categories).sort((a, b) => a.localeCompare(b));
-    categoryFilter.innerHTML = '<option value="all">Todas</option>';
+    categoryFilter.innerHTML = '<option value="all">Todas las Categorías</option>';
     sortedCategories.forEach(category => {
         const option = document.createElement('option');
         option.value = category;
@@ -62,9 +61,8 @@ function populateFilters() {
     });
 
     const years = new Set(allContent.map(item => item.año));
-    // Ordenar años de más nuevo a más viejo
     const sortedYears = Array.from(years).sort((a, b) => b - a);
-    yearFilter.innerHTML = '<option value="all">Todos</option>';
+    yearFilter.innerHTML = '<option value="all">Todos los Años</option>';
     sortedYears.forEach(year => {
         const option = document.createElement('option');
         option.value = year;
@@ -77,14 +75,12 @@ function populateFilters() {
 function displayPaginatedContent() {
     contentGrid.innerHTML = '';
     if (currentFilteredItems.length === 0) {
-        contentGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; font-size: 1.2rem;">No se encontraron resultados para los filtros seleccionados.</p>';
-        paginationControls.style.display = 'none'; // Oculta los controles si no hay resultados
+        contentGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; font-size: 1.2rem;">No se encontraron resultados.</p>';
+        paginationControls.style.display = 'none';
         return;
     }
 
-    paginationControls.style.display = 'flex'; // Muestra los controles
-
-    // Calcula los índices de inicio y fin para la página actual
+    paginationControls.style.display = 'flex';
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedItems = currentFilteredItems.slice(startIndex, endIndex);
@@ -95,21 +91,20 @@ function displayPaginatedContent() {
         
         const imageUrl = item.portada && item.portada.startsWith('http') ? item.portada : 'https://i.ibb.co/bFqfL5Q/placeholder.png';
 
-        // **CAMBIO 2: Se eliminó loading="lazy" para cargar las imágenes inmediatamente**
         contentItem.innerHTML = `
             <div class="image-container">
-                <img src="${imageUrl}" alt="Portada de ${item.nombre}">
+                <img src="${imageUrl}" alt="Portada de ${item.nombre}" loading="lazy">
             </div>
             <h3>${item.nombre}</h3>
         `;
         
         contentItem.addEventListener('click', () => {
             if (item.link) {
-                // **CAMBIO 1: Se antepone la URL del reproductor al enlace original**
                 const playerUrl = `https://serviciosgenerales.zya.me/service.php?i=${item.link}`;
                 window.open(playerUrl, '_blank');
             } else {
-                alert('Lo siento, no hay un enlace disponible para este contenido.');
+                // Podríamos mostrar una notificación más elegante en el futuro
+                console.warn('No hay un enlace disponible para este contenido.');
             }
         });
        
@@ -139,57 +134,45 @@ function filterContent() {
     const selectedType = typeFilter.value;
 
     currentFilteredItems = allContent.filter(item => {
-        const matchesCategory = selectedCategory === 'all' || item.categoria.split(',').map(cat => cat.trim()).includes(selectedCategory);
-        const matchesYear = selectedYear === 'all' || item.año.toString() === selectedYear;
+        const itemCategories = item.categoria ? item.categoria.split(',').map(cat => cat.trim()) : [];
+        const matchesCategory = selectedCategory === 'all' || itemCategories.includes(selectedCategory);
+        const matchesYear = selectedYear === 'all' || (item.año && item.año.toString() === selectedYear);
         const matchesType = selectedType === 'all' || item.tipo === selectedType;
         return matchesCategory && matchesYear && matchesType;
     });
-    currentPage = 1; // Reinicia a la primera página después de filtrar
+    currentPage = 1;
     displayPaginatedContent();
 }
 
 // --- Event Listeners ---
-
-// Filtros
 categoryFilter.addEventListener('change', filterContent);
 yearFilter.addEventListener('change', filterContent);
 typeFilter.addEventListener('change', filterContent);
 
-// Botones de paginación
 prevButton.addEventListener('click', () => {
     if (currentPage > 1) {
         currentPage--;
         displayPaginatedContent();
-        window.scrollTo(0, 0); // Sube al inicio de la página
+        window.scrollTo(0, 0);
     }
 });
+
 nextButton.addEventListener('click', () => {
     const totalPages = Math.ceil(currentFilteredItems.length / itemsPerPage);
     if (currentPage < totalPages) {
         currentPage++;
         displayPaginatedContent();
-        window.scrollTo(0, 0); // Sube al inicio de la página
+        window.scrollTo(0, 0);
     }
 });
 
-// Ajuste responsivo al cambiar el tamaño de la ventana
 window.addEventListener('resize', () => {
     setItemsPerPage();
+    // Re-renderizar para ajustar el número de items si cambia la paginación
     displayPaginatedContent();
 });
 
-// Event listener para el botón de hamburguesa
-menuToggle.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-});
-
-// Event listener para el overlay (cierra el menú al hacer clic fuera)
-overlay.addEventListener('click', () => {
-    sidebar.classList.remove('active');
-    overlay.classList.remove('active');
-});
-
+// --- ELIMINADO: Se quitaron los event listeners para el menú ---
 
 // --- Inicialización ---
 initializeApp();
