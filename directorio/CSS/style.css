@@ -1,173 +1,147 @@
-/* --- VARIABLES BASE --- */
+/* --- GOOGLE FONTS (Importado de style.css) --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* --- VARIABLES DE DISEÑO (Unificadas con style.css) --- */
 :root {
-  --primary-bg-color: #141414;
-  --secondary-bg-color: #202020;
-  --sidebar-bg-color: #0c0c0c;
-  --text-color: #e4e4e4;
-  --text-color-secondary: #a0a0a0;
-  --accent-color: #e50914;
-  --accent-hover: #f40612;
-  --border-color: #303030;
-  --card-shadow: rgba(0, 0, 0, 0.5);
-  --sidebar-width: 240px;
-  --spacing: 1rem;
-  --radius: 8px;
-  --poster-ratio: 0.67;
-  --transition-fast: 0.2s ease;
-  --transition-medium: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --color-background: #101010;
+  --color-primary: #181818;
+  --color-secondary: #2a2a2a;
+  --color-accent: #e50914;
+  --color-accent-hover: #f40612;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --font-family: 'Poppins', sans-serif;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --border-radius: 12px;
+  --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 10px 20px rgba(0, 0, 0, 0.2), 0 6px 6px rgba(0, 0, 0, 0.15);
+  --poster-ratio: 0.67; /* Mantenido del original para las tarjetas */
 }
 
-/* --- RESET + BODY --- */
-* {
+/* --- ESTILOS GENERALES Y RESET --- */
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-main);
-  background-color: var(--primary-bg-color);
-  color: var(--text-color);
-  line-height: 1.5;
+  font-family: var(--font-family);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- SIDEBAR DE NAVEGACIÓN --- */
-.sidebar {
-  background-color: var(--sidebar-bg-color);
-  position: fixed;
+/* --- ENCABEZADO NUEVO (Estilos de style.css) --- */
+.main-header {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-primary);
+  position: sticky;
   top: 0;
-  left: 0;
-  height: 100%;
-  width: var(--sidebar-width);
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  padding: calc(var(--spacing) * 1.5);
-  border-right: 1px solid var(--border-color);
-  transform: translateX(0);
-  transition: transform var(--transition-medium);
+  box-shadow: var(--shadow-soft);
 }
 
-.sidebar-header .logo {
-  color: var(--accent-color);
-  font-size: 2.5rem;
-  text-align: center;
-  font-weight: bold;
-  letter-spacing: 2px;
-  margin: 0 0 var(--spacing) 0;
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
-.sidebar-nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
-.sidebar-nav li a {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing);
-  padding: var(--spacing) calc(var(--spacing) * 1.2);
-  color: var(--text-color-secondary);
-  text-decoration: none;
-  font-size: 1.1rem;
-  border-radius: var(--radius);
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+.nav-logo .logo {
+  width: 40px;
+  height: 40px;
 }
 
-.sidebar-nav li a:hover {
-  background-color: var(--secondary-bg-color);
-  color: var(--text-color);
+.nav-logo h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
 }
 
-.sidebar-nav li a svg {
-  width: 24px;
-  height: 24px;
+.nav-right .return-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background-color: var(--color-accent);
+    color: var(--color-text-primary);
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: background-color var(--transition-smooth), transform var(--transition-smooth);
+    text-decoration: none;
 }
 
-/* --- BOTÓN MENÚ MÓVIL (HAMBURGUESA) --- */
-#menu-toggle {
-  display: none; /* Oculto por defecto */
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1001;
-  background: rgba(12, 12, 12, 0.7);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  padding: 10px;
+.return-btn:hover {
+    background-color: var(--color-accent-hover);
+    transform: scale(1.05);
 }
 
-/* --- OVERLAY --- */
-.overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
+.return-btn .fa-arrow-left {
+    font-size: 1rem;
 }
 
-.sidebar.active ~ .overlay {
-  display: block;
-}
-
+/* --- ELIMINADO: Se quitaron todos los estilos de .sidebar, #menu-toggle, .overlay --- */
 
 /* --- CONTENEDOR PRINCIPAL --- */
 main {
-  padding: calc(var(--spacing) * 2);
-  transition: margin-left var(--transition-medium);
-  margin-left: var(--sidebar-width); /* Espacio para la sidebar */
+  /* Se elimina margin-left y se usa padding estándar */
+  padding: var(--spacing-lg) var(--spacing-md);
 }
 
-header {
-  text-align: left;
-  margin-bottom: var(--spacing);
+.page-title-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
 }
 
-header h1 {
-  color: var(--text-color);
-  font-size: 2.2rem;
+.page-title-header h1 {
+  font-size: 2.5rem;
   font-weight: 700;
-  margin: 0;
+  color: var(--color-text-primary);
 }
 
-/* --- FILTROS --- */
+/* --- FILTROS (Estilo modernizado) --- */
 .filters {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  gap: var(--spacing);
-  padding: var(--spacing) 0;
-  margin-bottom: calc(var(--spacing) * 1.5);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius);
 }
 
 .filters label {
   font-size: 1rem;
-  color: var(--text-color-secondary);
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
 .filters select {
   padding: 0.7rem 1.2rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  background-color: var(--secondary-bg-color);
-  color: var(--text-color);
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--border-radius);
+  background-color: var(--color-secondary);
+  color: var(--color-text-primary);
   font-size: 1rem;
   appearance: none;
   cursor: pointer;
-  transition: var(--transition-fast);
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%23e4e4e4" height="24" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
+  transition: var(--transition-smooth);
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
   background-repeat: no-repeat;
   background-position: right 0.8rem center;
   background-size: 1.2em;
@@ -176,35 +150,34 @@ header h1 {
 
 .filters select:hover,
 .filters select:focus {
-  border-color: var(--accent-color);
+  border-color: var(--color-accent);
   box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.4);
   outline: none;
 }
 
-/* --- REJILLA DE PELÍCULAS --- */
+/* --- REJILLA DE CONTENIDO --- */
 .content-grid {
   display: grid;
-  gap: calc(var(--spacing) * 1.5);
-  padding: var(--spacing) 0;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
 }
 
-/* --- TARJETA DE CONTENIDO --- */
+/* --- TARJETA DE CONTENIDO (Estilo modernizado) --- */
 .content-item {
-  background-color: var(--secondary-bg-color);
-  border-radius: var(--radius);
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius);
   overflow: hidden;
-  box-shadow: 0 4px 8px var(--card-shadow);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  border: 2px solid transparent; /* Borde para el efecto hover */
+  border: 2px solid transparent;
+  position: relative;
 }
 
 .content-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 10px 20px var(--card-shadow);
-  border-color: var(--accent-color);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--color-accent);
 }
 
 .image-container {
@@ -222,7 +195,7 @@ header h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-medium);
+  transition: transform 0.4s ease;
 }
 
 .content-item:hover .image-container img {
@@ -230,107 +203,104 @@ header h1 {
 }
 
 .content-item h3 {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  margin: 0.8rem;
-  color: var(--text-color);
-  white-space: normal;
-  height: 3em; /* aprox 2 líneas */
-  line-height: 1.5em;
+  padding: var(--spacing-sm);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+  color: var(--color-text-primary);
+  text-align: left;
+  transform: translateY(20%);
+  opacity: 0;
+  transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+}
+
+.content-item:hover h3 {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 /* --- PAGINACIÓN --- */
 .pagination-controls {
   display: flex;
   justify-content: center;
-  gap: var(--spacing);
-  margin-top: calc(var(--spacing) * 2);
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
 }
 
 .pagination-controls button {
-  background-color: var(--accent-color);
+  background-color: var(--color-accent);
   color: white;
   border: none;
-  padding: 0.8rem 1.4rem;
-  border-radius: 50px;
-  font-size: 1.1rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pagination-controls button:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-  transform: scale(1.05);
+  background-color: var(--color-accent-hover);
+  transform: scale(1.1);
 }
 
 .pagination-controls button:disabled {
-  background-color: #555;
+  background-color: var(--color-secondary);
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 /* --- DISEÑO RESPONSIVO (Mobile-First) --- */
-/* Móvil Pequeño (hasta 600px) - 2 columnas */
 .content-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
 }
 
-/* Tablet (601px - 900px) - 3 columnas */
-@media (min-width: 601px) {
+@media (min-width: 480px) {
   .content-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Escritorio Pequeño (901px - 1200px) - 4 columnas */
-@media (min-width: 901px) {
+@media (min-width: 768px) {
   .content-grid {
     grid-template-columns: repeat(4, 1fr);
   }
+  .main-header, main {
+      padding-left: var(--spacing-lg);
+      padding-right: var(--spacing-lg);
+  }
+  .return-btn span {
+      display: inline;
+  }
 }
 
-/* Escritorio Grande (1201px y más) - 5 columnas */
-@media (min-width: 1201px) {
+@media (min-width: 1024px) {
   .content-grid {
     grid-template-columns: repeat(5, 1fr);
+    gap: var(--spacing-md);
   }
 }
 
-
-/* --- Media Query para el cambio de Navegación (768px) --- */
-@media (max-width: 768px) {
-  main {
-    margin-left: 0; /* Sin margen en móvil */
-    padding: var(--spacing);
+@media (max-width: 767px) {
+  .page-title-header h1 {
+    font-size: 1.8rem;
   }
-
-  header h1 {
-      font-size: 1.8rem;
-      margin-top: 60px; /* Espacio para el botón de hamburguesa */
-      text-align: center;
+  .return-btn span {
+      display: none; /* Oculta el texto en móviles, deja solo el icono */
   }
-    
-  .filters {
-      justify-content: center;
+  .nav-logo h1 {
+    font-size: 1.5rem;
   }
-
-  .sidebar {
-    transform: translateX(-100%); /* Oculta la sidebar fuera de la pantalla */
-    box-shadow: 5px 0 15px rgba(0,0,0,0.4);
-  }
-
-  .sidebar.active {
-    transform: translateX(0); /* Muestra la sidebar */
-  }
-
-  #menu-toggle {
-    display: block; /* Muestra el botón de hamburguesa */
-  }
-
 }
