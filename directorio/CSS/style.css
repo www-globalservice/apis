@@ -174,8 +174,10 @@ main {
   position: relative;
 }
 
+/* ======================================================================== */
+/* === CAMBIO 2: Se elimina "transform: scale(1.05);" de la regla :hover === */
+/* ======================================================================== */
 .content-item:hover {
-  transform: scale(1.05);
   box-shadow: var(--shadow-medium);
   border-color: var(--color-accent);
 }
@@ -302,5 +304,27 @@ main {
   }
   .nav-logo h1 {
     font-size: 1.5rem;
+  }
+}
+
+/* ============================================================================= */
+/* === CAMBIO 1: Reestructura de filtros para tablets y móviles (<= 768px) === */
+/* ============================================================================= */
+@media (max-width: 768px) {
+  .filters {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Columna para label, columna para select */
+    align-items: center;
+    justify-content: stretch; /* Se extiende al 100% del contenedor */
+    row-gap: var(--spacing-md); /* Espaciado vertical entre filas */
+    column-gap: var(--spacing-sm); /* Espaciado entre label y select */
+  }
+
+  .filters label {
+    justify-self: start; /* Alinea etiquetas a la izquierda */
+  }
+
+  .filters select {
+    width: 100%; /* El select ocupa todo el espacio disponible en su celda */
   }
 }
