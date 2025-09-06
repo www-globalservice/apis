@@ -1,180 +1,357 @@
+/* --- GOOGLE FONTS --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/*
+=================================================================
+  VARIABLES DE DISEÑO Y CONFIGURACIÓN GLOBAL
+=================================================================
+*/
 :root {
-    --color-primary: #3a7bfd;
-    --color-secondary: #00d4ff;
-    --color-background-start: #1a1a2e;
-    --color-background-end: #16213e;
-    --color-surface: rgba(28, 37, 65, 0.6);
-    --color-text-primary: #e0e0e0;
-    --color-text-secondary: #a7a9be;
-    --border-radius: 1rem; /* 16px -> 1rem */
+  /* Paleta de Colores */
+  --color-background: #101010;
+  --color-primary: #181818;
+  --color-secondary: #2a2a2a;
+  --color-accent: #e50914;
+  --color-accent-hover: #f40612;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --color-particle: rgba(255, 255, 255, 0.2);
+
+  /* Tipografía */
+  --font-family: 'Poppins', sans-serif;
+  
+  /* Espaciado Fluido */
+  --spacing-xs: clamp(0.5rem, 1vw, 0.75rem);
+  --spacing-sm: clamp(0.75rem, 1.5vw, 1rem);
+  --spacing-md: clamp(1.25rem, 2.5vw, 1.75rem);
+  --spacing-lg: clamp(2rem, 4vw, 3rem);
+
+  /* Otros */
+  --border-radius: 12px;
+  --transition-smooth: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --shadow-deep: 0 10px 30px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --animation-duration: 800ms;
+}
+
+/* --- ESTILOS GENERALES Y RESET --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: var(--color-background-end);
-    background-image: radial-gradient(circle at top left, var(--color-background-start) 0%, var(--color-background-end) 100%);
-    color: var(--color-text-primary);
-    margin: 0;
-    padding: 1.25rem; /* 20px -> 1.25rem */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    line-height: 1.7;
-    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño total */
+  font-family: var(--font-family);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(1.25rem); } /* 20px -> 1.25rem */
-    to { opacity: 1; transform: translateY(0); }
+/*
+=================================================================
+  FONDO DE CANVAS ANIMADO
+=================================================================
+*/
+#particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  /* El JS se encarga del resto */
 }
 
+
+/*
+=================================================================
+  ENCABEZADO Y NAVEGACIÓN
+=================================================================
+*/
+.main-header {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(24, 24, 24, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: transform var(--transition-smooth);
+}
+.nav-logo:hover {
+    transform: scale(1.03);
+}
+
+.nav-logo .logo {
+  width: 35px;
+  height: 35px;
+}
+
+.nav-logo h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.nav-right .return-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-accent);
+  color: var(--color-text-primary);
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  transition: all var(--transition-smooth);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.return-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+
+.return-btn:hover {
+  background-color: var(--color-accent-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(229, 9, 20, 0.3);
+}
+.return-btn:hover::before {
+    width: 200px;
+    height: 200px;
+}
+
+.return-btn .fa-arrow-left {
+  font-size: 1rem;
+}
+
+.return-btn span {
+  display: none; /* Mobile-first: oculto por defecto */
+}
+
+/*
+=================================================================
+  CONTENEDOR PRINCIPAL
+=================================================================
+*/
 .main-container {
-    background-color: var(--color-surface);
-    backdrop-filter: blur(15px);
-    padding: 2rem 2.5rem; /* 30px 40px -> 2rem 2.5rem */
-    border-radius: var(--border-radius);
-    box-shadow: 0 1.25rem 3.125rem rgba(0, 0, 0, 0.5); /* 20px 50px */
-    max-width: 800px;
-    width: 100%; /* El padding del body controla el espacio con los bordes */
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    animation: fadeInUp 0.8s ease-out;
-    box-sizing: border-box;
+  flex-grow: 1;
+  width: 90%;
+  max-width: 800px;
+  margin: var(--spacing-md) auto;
+  padding: var(--spacing-md);
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-deep);
+  text-align: center;
+  border: 1px solid var(--color-secondary);
+  /* Animación de entrada */
+  --animate-duration: var(--animation-duration);
 }
 
-.logo {
-    max-width: 90px;
-    margin-bottom: 1.5rem; /* 25px -> 1.5rem */
+.content-header h1 {
+  font-size: clamp(1.8rem, 5vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: var(--spacing-xs);
 }
 
-h1 {
-    font-size: clamp(1.8rem, 5vw, 2.2rem);
-    color: #ffffff;
-    font-weight: 700;
-    margin: 0 0 0.625rem 0; /* 10px -> 0.625rem */
-}
-
-h2 {
-    font-size: clamp(1rem, 3vw, 1.2rem);
-    color: var(--color-text-secondary);
-    font-weight: 400;
-    margin: 0 0 1.875rem 0; /* 30px -> 1.875rem */
+.content-header h2 {
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  margin-bottom: var(--spacing-lg);
 }
 
 /* --- CONTENIDO LEGAL PLEGABLE --- */
 .legal-content-wrapper {
-    text-align: left;
-    margin-bottom: 1.25rem; /* 20px -> 1.25rem */
-    color: var(--color-text-secondary);
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    overflow: hidden;
-    max-height: 120px; /* Altura inicial para mostrar solo un extracto */
-    transition: max-height 0.7s ease-in-out;
-    position: relative;
-}
-
-.legal-content-wrapper::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
-    background: linear-gradient(to top, var(--color-background-end), transparent);
-    pointer-events: none; /* Permite hacer clic a través del degradado */
-    transition: opacity 0.5s ease;
+  text-align: left;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-secondary);
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  overflow: hidden;
+  max-height: 120px;
+  transition: max-height 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  position: relative;
 }
 
 .legal-content-wrapper.is-expanded {
-    max-height: 1000px; /* Altura suficiente para mostrar todo el contenido */
-}
-
-.legal-content-wrapper.is-expanded::after {
-    opacity: 0;
+  max-height: 1000px;
 }
 
 .legal-content-wrapper h3 {
-    color: var(--color-text-primary);
-    font-weight: 700;
-    margin-top: 1.5rem;
-    margin-bottom: 0.625rem;
-    border-left: 3px solid var(--color-primary);
-    padding-left: 1rem; /* 15px -> 1rem */
+  color: var(--color-text-primary);
+  font-weight: 600;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--spacing-sm);
 }
 
 .toggle-legal {
-    color: var(--color-secondary);
-    text-decoration: none;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-block;
-    margin-bottom: 1.875rem; /* 30px -> 1.875rem */
-    transition: color 0.3s ease;
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-block;
+  margin-bottom: var(--spacing-lg);
+  transition: color 0.3s ease;
 }
 .toggle-legal:hover {
-    color: #ffffff;
+  color: var(--color-accent-hover);
 }
 
-/* --- LOADER DE REDIRECCIÓN --- */
+/*
+=================================================================
+  LOADER DE REDIRECCIÓN MEJORADO
+=================================================================
+*/
 .redirect-loader {
-    margin-top: 1.25rem; /* 20px -> 1.25rem */
-    padding-top: 1.25rem; /* 20px -> 1.25rem */
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-secondary);
 }
 
 .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    border-top-color: var(--color-primary);
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem auto; /* 15px -> 1rem */
+  position: relative;
+  width: 50px;
+  height: 50px;
+  margin: var(--spacing-md) auto var(--spacing-md) auto;
+  animation: spin 2.5s infinite linear;
+}
+
+.dot1, .dot2 {
+  width: 60%;
+  height: 60%;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  background-color: var(--color-accent);
+  border-radius: 100%;
+  animation: bounce 2s infinite ease-in-out;
+}
+
+.dot2 {
+  top: auto;
+  bottom: 0;
+  animation-delay: -1.0s;
+  background-color: var(--color-secondary);
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(0.0);
+  } 50% {
+    transform: scale(1.0);
+  }
 }
 
 .redirect-loader p {
-    font-size: 1.1rem;
-    color: var(--color-text-primary);
-    font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
 }
 
-.redirect-loader span {
-    font-weight: 700;
-    color: var(--color-secondary);
+/*
+=================================================================
+  VISTAS DE MANTENIMIENTO Y ERROR
+=================================================================
+*/
+#maintenance-view, #error-view {
+  padding: var(--spacing-lg) 0;
 }
-
-/* --- MODO MANTENIMIENTO --- */
 .maintenance-icon {
-    font-size: 3.125rem; /* 50px -> 3.125rem */
-    margin-bottom: 1.25rem; /* 20px -> 1.25rem */
-    color: var(--color-primary);
+  font-size: 4rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+#maintenance-view h1, #error-view .error-title {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
 }
 
-/* --- RESPONSIVE DESIGN --- */
-@media (max-width: 600px) {
-    body {
-        padding: 1rem; /* Reduce el padding en pantallas pequeñas */
-    }
-    .main-container {
-        padding: 1.5rem 1.25rem; /* 25px 20px -> 1.5rem 1.25rem */
-    }
-}
-/* ... (tu CSS existente) ... */
-
-/* --- VISTA DE ERROR --- */
 #error-view .error-title {
-    color: #ff6b6b; /* Un color rojo para destacar el error */
-    font-weight: 700;
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
 #error-view p {
-    color: var(--color-text-secondary);
-    line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/*
+=================================================================
+  MEDIA QUERIES - RESPONSIVE DESIGN
+=================================================================
+*/
+
+/* --- Tablets (600px y más) --- */
+@media (min-width: 600px) {
+  .nav-logo .logo {
+    width: 40px;
+    height: 40px;
+  }
+  .nav-logo h1 {
+    font-size: 1.75rem;
+  }
+  .return-btn span {
+    display: inline; /* Muestra el texto del botón */
+  }
+  .return-btn {
+     padding: var(--spacing-xs) var(--spacing-md);
+  }
+}
+
+/* --- Laptops/Escritorios Pequeños (992px y más) --- */
+@media (min-width: 992px) {
+  main.main-container {
+    padding: var(--spacing-lg);
+  }
+  .legal-content-wrapper {
+     max-height: 100px;
+  }
+}
+
+/* --- Escritorios Grandes/TV (1400px y más) --- */
+@media (min-width: 1400px) {
+  main.main-container {
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+  }
 }
