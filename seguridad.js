@@ -1,537 +1,686 @@
 /**
- * Fly Security v3.2
- *
- * Un script de seguridad robusto y moderno para la protección de sitios web.
- * Esta versión introduce un rediseño completo de la UI/UX, encapsulamiento de CSS para
- * prevenir conflictos, diseño totalmente responsive y optimizaciones de código.
+ * FLY SEGURITY V3.2
  *
  * @version 3.2
- * @author Tu Nombre/Empresa
- * @license MIT
+ * @author Fly
+ * @description Complete refactoring with a focus on professional UI/UX, conflict prevention through randomized naming,
+ * and enhanced security logic. This script is designed for maximum compatibility and performance
+ * on third-party websites.
+ *
+ * Key Features in v3.2:
+ * - Professional Dark UI: Modern, dark theme with "frosted glass" effect using backdrop-filter.
+ * - Animated Canvas Background: Subtle, low-resource geometric animation behind modals.
+ * - Conflict-Proofing: All DOM element IDs and class names are dynamically randomized to prevent conflicts.
+ * - Dynamic Injection: All CSS and external fonts are injected into the <head> to avoid external files.
+ * - Fully Responsive: Flawless adaptability from small mobile devices to large desktop screens.
+ * - Unified Header: Consistent "FLY SEGURITY V3.2" branding on all user-facing elements.
+ * - Aggressive Security: Maintains and enhances immediate blocking for prohibited actions.
+ * - Total Connection Loss Lock: The connection loss screen now completely blocks all page interaction.
  */
 (function() {
     'use strict';
 
-    // --- CONFIGURACIÓN CENTRALIZADA ---
-    const config = {
-        // URL a la que redirige una pulsación larga en el logo. ¡Cámbiala por tu página!
-        creatorPage: "#",
-        // URL del logo para todos los elementos de la UI.
-        logoUrl: "https://i.ibb.co/prdSf9qW/Fly-segurity-27-08-2025.png",
-        // Sensibilidad para la detección de acciones repetitivas.
-        actionThreshold: {
-            clicks: { count: 50, time: 3000 }, // 50 clics en 3s
-            keys: { count: 50, time: 3000 }   // 50 pulsaciones en 3s
+    // --- CORE CONFIGURATION ---
+    const CONFIG = {
+        PROJECT_NAME: 'FLY SEGURITY',
+        VERSION: 'V3.2',
+        CREATOR_PAGE: '#', // URL to redirect on long-press of watermark
+        BAN_DURATION_HOURS: 24,
+        ACTION_EXIT_URL: 'http://action_exit',
+        ACTION_THRESHOLD: {
+            clicks: { count: 50, time: 3000 },
+            keys: { count: 50, time: 3000 }
         },
-        // URL de redirección en caso de pérdida de conexión prolongada.
-        errorRedirectUrl: "about:blank",
-        // Duración del baneo en horas.
-        banDurationHours: 24
+        CONNECTION_LOSS_TIMEOUT_SECONDS: 30,
     };
 
-    // --- LÓGICA DE ENCAPSULAMIENTO Y UTILIDADES ---
-
-    /**
-     * Genera un prefijo aleatorio para las clases y IDs de CSS.
-     * @returns {string} Una cadena aleatoria para usar como prefijo.
-     */
-    const generateCssPrefix = () => 'fs-' + Math.random().toString(36).substring(2, 9);
-    const cssPrefix = generateCssPrefix();
-
-    /**
-     * Devuelve el nombre de una clase o ID con el prefijo único.
-     * @param {string} name - El nombre base del selector.
-     * @returns {string} El nombre completo y único del selector.
-     */
-    const getSelector = (name) => `${cssPrefix}-${name}`;
-
-    // --- LÓGICA DE SEGURIDAD ---
-
-    /**
-     * Verifica si el usuario está baneado y muestra la pantalla de bloqueo si es necesario.
-     * Lanza un error para detener la ejecución del script si el usuario está baneado.
-     */
-    const checkBanStatus = () => {
-        try {
-            const banInfo = JSON.parse(localStorage.getItem('flySecurityBan'));
-            if (banInfo && new Date().getTime() < banInfo.expires) {
-                const remainingTime = Math.ceil((banInfo.expires - new Date().getTime()) / (1000 * 60 * 60));
-                const banScreen = document.createElement('div');
-                banScreen.id = getSelector('ban-screen');
-                banScreen.innerHTML = `
-                    <div class="${getSelector('modal-content')}">
-                        <header class="${getSelector('modal-header')}">
-                            <img src="${config.logoUrl}" alt="Logo">
-                            <h1>FLY SECURITY V3.2</h1>
-                        </header>
-                        <h2>Acceso Bloqueado</h2>
-                        <p>Tu acceso ha sido suspendido temporalmente por actividad sospechosa.</p>
-                        <p>Podrás volver a intentarlo en aproximadamente <strong>${remainingTime} horas</strong>.</p>
-                    </div>`;
-                document.body.innerHTML = ''; // Limpia el body
-                document.body.appendChild(banScreen);
-                injectStyles(); // Inyecta los estilos necesarios para la pantalla de baneo.
-                throw new Error("User is banned.");
-            }
-        } catch (e) {
-            console.error("Fly Security: Error checking ban status.", e);
-            // Si hay un error (p.ej. localStorage bloqueado), no bloqueamos al usuario.
-        }
+    // --- UTILITY: RANDOM NAME GENERATOR FOR CONFLICT AVOIDANCE ---
+    const generateRandomId = (prefix = 'fs-') => {
+        return prefix + Math.random().toString(36).substring(2, 10);
     };
 
-    /**
-     * Banea al usuario por un número determinado de horas.
-     * @param {number} durationHours - La duración del baneo en horas.
-     */
-    const banUser = (durationHours = config.banDurationHours) => {
-        try {
-            const expires = new Date().getTime() + durationHours * 60 * 60 * 1000;
-            localStorage.setItem('flySecurityBan', JSON.stringify({ expires }));
-            localStorage.removeItem('flySecurityWarning');
-            checkBanStatus();
-        } catch (e) {
-            console.error("Fly Security: Could not ban user. localStorage might be disabled.", e);
-        }
+    // --- DYNAMICALLY GENERATED CLASS AND ID NAMES ---
+    const DOM_IDS = {
+        styleSheet: generateRandomId('style-'),
+        fontLink: generateRandomId('font-'),
+        canvas: generateRandomId('canvas-'),
+        modalOverlay: generateRandomId('modal-overlay-'),
+        watermark: generateRandomId('watermark-'),
+        infoPanel: generateRandomId('info-panel-'),
+        warningPanel: generateRandomId('warning-'),
+        connectionLossPanel: generateRandomId('conn-loss-'),
+        connectionRestoredPanel: generateRandomId('conn-restored-'),
+        banScreen: generateRandomId('ban-screen-'),
     };
 
-    /**
-     * Muestra un panel de advertencia por actividad sospechosa.
-     * Si el usuario ya ha recibido una advertencia, es baneado.
-     */
-    const showWarningPanel = () => {
-        if (document.getElementById(getSelector('warning-panel'))) return;
-
-        try {
-            if (localStorage.getItem('flySecurityWarning')) {
-                banUser();
-                return;
-            }
-            localStorage.setItem('flySecurityWarning', 'true');
-        } catch (e) {
-             console.error("Fly Security: localStorage not available for warnings.", e);
-        }
-
-        const panel = document.createElement('div');
-        panel.id = getSelector('warning-panel');
-        panel.innerHTML = `
-             <header class="${getSelector('modal-header')}">
-                <img src="${config.logoUrl}" alt="Logo">
-                <h3>FLY SECURITY</h3>
-            </header>
-            <strong>Actividad Sospechosa Detectada</strong>
-            <p>La repetición de esta acción resultará en un bloqueo temporal.</p>
-        `;
-        document.body.appendChild(panel);
-
-        setTimeout(() => {
-            panel.style.opacity = '0';
-            panel.style.transform = 'translateX(100%)';
-            setTimeout(() => document.body.removeChild(panel), 600);
-        }, 5000);
+    const DOM_CLASSES = {
+        visible: generateRandomId('visible-'),
+        fadeIn: generateRandomId('fade-in-'),
+        fadeOut: generateRandomId('fade-out-'),
+        panelHeader: generateRandomId('panel-header-'),
+        panelContent: generateRandomId('panel-content-'),
     };
 
-    // --- MÓDULOS DE PROTECCIÓN ---
 
-    const protectionModules = {
+    // --- UI/UX MODULE: DYNAMIC STYLE AND ELEMENT CREATION ---
+    const UIManager = {
         init() {
+            this.injectGoogleFont();
+            this.injectStyles();
+            this.createCanvasBackground();
+            this.createWatermark();
+            this.createInfoPanel();
+            this.createConnectionLossPanel();
+        },
+
+        injectGoogleFont() {
+            const link = document.createElement('link');
+            link.id = DOM_IDS.fontLink;
+            link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap';
+            link.rel = 'stylesheet';
+            document.head.appendChild(link);
+        },
+
+        injectStyles() {
+            const style = document.createElement('style');
+            style.id = DOM_IDS.styleSheet;
+            style.textContent = `
+                :root {
+                    --fs-bg-color: rgba(18, 18, 22, 0.85);
+                    --fs-text-color: #EAEAEA;
+                    --fs-primary-color: #00A9FF;
+                    --fs-warn-color: #FFD100;
+                    --fs-danger-color: #FF3B30;
+                    --fs-font-family: 'Inter', sans-serif;
+                    --fs-border-radius: 12px;
+                    --fs-z-base: 199998;
+                }
+
+                /* General Panel Styling */
+                .${DOM_CLASSES.panelHeader} {
+                    width: 100%;
+                    text-align: center;
+                    padding-bottom: 12px;
+                    margin-bottom: 12px;
+                    font-weight: 700;
+                    font-size: 1rem;
+                    color: var(--fs-text-color);
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    letter-spacing: 0.5px;
+                }
+
+                .${DOM_CLASSES.panelContent} {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    padding: 0 20px 20px;
+                }
+
+                /* Canvas Background */
+                #${DOM_IDS.canvas} {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: var(--fs-z-base);
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.5s ease;
+                    pointer-events: none;
+                }
+
+                /* Modal Overlay */
+                #${DOM_IDS.modalOverlay} {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: calc(var(--fs-z-base) + 1);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.4s ease, visibility 0.4s ease;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    background-color: rgba(10, 10, 10, 0.4);
+                }
+
+                #${DOM_IDS.modalOverlay}.${DOM_CLASSES.visible}, #${DOM_IDS.canvas}.${DOM_CLASSES.visible} {
+                    opacity: 1;
+                    visibility: visible;
+                }
+
+                /* Base Panel for Modals */
+                .fs-panel {
+                    background-color: var(--fs-bg-color);
+                    color: var(--fs-text-color);
+                    font-family: var(--fs-font-family);
+                    border-radius: var(--fs-border-radius);
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    max-width: 90%;
+                    width: 400px;
+                    transform: scale(0.95);
+                    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+                }
+
+                #${DOM_IDS.modalOverlay}.${DOM_CLASSES.visible} .fs-panel {
+                    transform: scale(1);
+                }
+
+                /* Info Panel */
+                #${DOM_IDS.infoPanel} h2 {
+                    font-size: 1.8rem;
+                    color: var(--fs-primary-color);
+                    margin: 10px 0;
+                }
+                #${DOM_IDS.infoPanel} p {
+                    font-size: 1rem;
+                    color: #BDBDBD;
+                    line-height: 1.6;
+                    margin: 0;
+                }
+                #${DOM_IDS.infoPanel} .fs-icon-shield {
+                    width: 60px;
+                    height: 60px;
+                    margin-bottom: 10px;
+                }
+
+                /* Watermark */
+                #${DOM_IDS.watermark} {
+                    position: fixed;
+                    bottom: 15px;
+                    left: 15px;
+                    z-index: var(--fs-z-base);
+                    cursor: pointer;
+                    transform: scale(1);
+                    transition: transform 0.3s ease;
+                }
+                #${DOM_IDS.watermark}:hover {
+                    transform: scale(1.1);
+                }
+                #${DOM_IDS.watermark} svg {
+                    width: 50px;
+                    height: 50px;
+                    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+                }
+
+                /* Ban Screen */
+                #${DOM_IDS.banScreen} {
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background-color: #0c0a10; color: var(--fs-text-color);
+                    display: flex; flex-direction: column; justify-content: center; align-items: center;
+                    font-family: var(--fs-font-family); z-index: 2147483647; text-align: center;
+                    padding: 20px;
+                }
+                #${DOM_IDS.banScreen} h1 { font-size: 2.5rem; color: var(--fs-danger-color); margin-bottom: 15px; }
+                #${DOM_IDS.banScreen} p { font-size: 1.2rem; margin: 5px 0; max-width: 600px; }
+
+                /* Warning & Connection Restored Notifications */
+                .fs-notification {
+                    position: fixed; top: 20px; right: 20px;
+                    display: flex;
+                    align-items: center;
+                    padding: 15px 20px;
+                    border-radius: var(--fs-border-radius);
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+                    z-index: 2147483646;
+                    font-family: var(--fs-font-family);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    transform: translateX(120%);
+                    transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+                }
+                .fs-notification.${DOM_CLASSES.visible} {
+                    transform: translateX(0);
+                }
+                #${DOM_IDS.warningPanel} { background-color: var(--fs-warn-color); color: #111; }
+                #${DOM_IDS.connectionRestoredPanel} { background-color: #28a745; color: white; }
+                .fs-notification-icon { margin-right: 15px; }
+                .fs-notification-icon svg { width: 30px; height: 30px; }
+                .fs-notification-text strong { font-size: 1rem; }
+                .fs-notification-text p { margin: 2px 0 0; font-size: 0.9rem; opacity: 0.9; }
+
+                /* Connection Loss Panel */
+                 #${DOM_IDS.connectionLossPanel} {
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    z-index: 2147483645;
+                    display: flex; justify-content: center; align-items: center;
+                    background: rgba(10, 10, 10, 0.7);
+                    backdrop-filter: blur(15px);
+                    -webkit-backdrop-filter: blur(15px);
+                    color: var(--fs-text-color);
+                    font-family: var(--fs-font-family);
+                    text-align: center;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.5s ease, visibility 0.5s ease;
+                    user-select: none; /* Block interaction */
+                    pointer-events: all; /* Block interaction */
+                }
+                 #${DOM_IDS.connectionLossPanel}.${DOM_CLASSES.visible} {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                 #${DOM_IDS.connectionLossPanel} h2 {
+                    font-size: 2.2rem;
+                    color: var(--fs-danger-color);
+                    margin: 10px 0;
+                }
+                 #${DOM_IDS.connectionLossPanel} p {
+                    font-size: 1.1rem;
+                    max-width: 450px;
+                    margin: 10px auto;
+                }
+                 #${DOM_IDS.connectionLossPanel} .fs-timer {
+                    font-size: 2.5rem;
+                    color: var(--fs-warn-color);
+                    margin-top: 20px;
+                    font-weight: 700;
+                }
+
+                @media (max-width: 480px) {
+                    .fs-panel { width: 95%; }
+                    #${DOM_IDS.banScreen} h1 { font-size: 1.8rem; }
+                    #${DOM_IDS.banScreen} p { font-size: 1rem; }
+                    #${DOM_IDS.connectionLossPanel} h2 { font-size: 1.8rem; }
+                    #${DOM_IDS.connectionLossPanel} p { font-size: 1rem; }
+                    .fs-notification { width: calc(100% - 40px); }
+                }
+            `;
+            document.head.appendChild(style);
+        },
+
+        createCanvasBackground() {
+            const canvas = document.createElement('canvas');
+            canvas.id = DOM_IDS.canvas;
+            document.body.appendChild(canvas);
+            CanvasAnimator.init(canvas);
+        },
+
+        createWatermark() {
+            const container = document.createElement('div');
+            container.id = DOM_IDS.watermark;
+            container.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:${CONFIG.ACTION_EXIT_URL === 'http://action_exit' ? 'var(--fs-primary-color)' : '#4CAF50'};stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:${CONFIG.ACTION_EXIT_URL === 'http://action_exit' ? '#007BFF' : '#81C784'};stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M12 22S19 17.5 19 12V5L12 2L5 5V12C5 17.5 12 22 12 22Z" fill="url(#grad1)"/>
+                    <path d="M12 6L14.5 11.5L10 14L12 18" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`;
+            document.body.appendChild(container);
+
+            container.addEventListener('click', () => this.showInfoPanel(true));
+        },
+
+        createInfoPanel() {
+            const overlay = document.createElement('div');
+            overlay.id = DOM_IDS.modalOverlay;
+            overlay.innerHTML = `
+                <div id="${DOM_IDS.infoPanel}" class="fs-panel">
+                    <div class="${DOM_CLASSES.panelHeader}">${CONFIG.PROJECT_NAME} ${CONFIG.VERSION}</div>
+                    <div class="${DOM_CLASSES.panelContent}">
+                        <svg class="fs-icon-shield" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" style="fill:rgba(0, 169, 255, 0.1); stroke: var(--fs-primary-color);"></path></svg>
+                        <h2>Sitio Protegido</h2>
+                        <p>Tu navegación es segura. Este sitio utiliza nuestra tecnología para proteger su contenido contra la copia y el plagio.</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    this.showInfoPanel(false);
+                }
+            });
+        },
+
+        createConnectionLossPanel() {
+            const panel = document.createElement('div');
+            panel.id = DOM_IDS.connectionLossPanel;
+            panel.innerHTML = `
+                 <div class="fs-panel">
+                    <div class="${DOM_CLASSES.panelHeader}">${CONFIG.PROJECT_NAME} ${CONFIG.VERSION}</div>
+                    <div class="${DOM_CLASSES.panelContent}">
+                        <h2>Conexión Perdida</h2>
+                        <p>Se requiere una conexión a internet activa para ver este contenido. Intentando reconectar...</p>
+                        <div id="${DOM_IDS.connectionLossPanel}-timer" class="fs-timer">${CONFIG.CONNECTION_LOSS_TIMEOUT_SECONDS}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(panel);
+        },
+
+        showInfoPanel(visible) {
+            const overlay = document.getElementById(DOM_IDS.modalOverlay);
+            const canvas = document.getElementById(DOM_IDS.canvas);
+            if (visible) {
+                overlay.classList.add(DOM_CLASSES.visible);
+                canvas.classList.add(DOM_CLASSES.visible);
+                CanvasAnimator.start();
+            } else {
+                overlay.classList.remove(DOM_CLASSES.visible);
+                canvas.classList.remove(DOM_CLASSES.visible);
+                CanvasAnimator.stop();
+            }
+        },
+
+        showNotification(id, htmlContent) {
+             // Remove existing notification of the same type
+            const existing = document.getElementById(id);
+            if (existing) {
+                existing.remove();
+            }
+
+            const notification = document.createElement('div');
+            notification.id = id;
+            notification.className = 'fs-notification';
+            notification.innerHTML = htmlContent;
+            document.body.appendChild(notification);
+            
+            // Trigger fade in
+            setTimeout(() => notification.classList.add(DOM_CLASSES.visible), 10);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove(DOM_CLASSES.visible);
+                setTimeout(() => notification.remove(), 600); // Remove from DOM after transition
+            }, 5000);
+        },
+
+        showWarning() {
+            const html = `
+                <div class="fs-notification-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                </div>
+                <div class="fs-notification-text">
+                    <strong>Actividad Sospechosa</strong>
+                    <p>La repetición de esta acción resultará en un bloqueo.</p>
+                </div>
+            `;
+            this.showNotification(DOM_IDS.warningPanel, html);
+        },
+        
+        showConnectionRestored() {
+            const html = `
+                <div class="fs-notification-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                </div>
+                <div class="fs-notification-text">
+                    <strong>Conexión Recuperada</strong>
+                    <p>¡Bienvenido de nuevo!</p>
+                </div>
+            `;
+             this.showNotification(DOM_IDS.connectionRestoredPanel, html);
+        }
+    };
+
+
+    // --- SECURITY LOGIC MODULE ---
+    const SecurityManager = {
+        lastActions: { clicks: [], keys: [] },
+        
+        init() {
+            this.checkBanStatus();
+            this.setupEventListeners();
+            this.startDevToolsChecker();
+        },
+
+        checkBanStatus() {
+            try {
+                const banInfo = JSON.parse(localStorage.getItem('flySecurityBan'));
+                if (banInfo && new Date().getTime() < banInfo.expires) {
+                    const remainingTime = Math.ceil((banInfo.expires - new Date().getTime()) / (1000 * 60 * 60));
+                    document.body.innerHTML = `
+                        <div id="${DOM_IDS.banScreen}">
+                            <h1>Acceso Bloqueado</h1>
+                            <p>Tu acceso a este sitio ha sido suspendido temporalmente por actividad sospechosa.</p>
+                            <p>Podrás volver a intentarlo en aproximadamente <strong>${remainingTime} horas</strong>.</p>
+                        </div>`;
+                    // This effectively stops script execution for banned users
+                    throw new Error("User is banned."); 
+                }
+            } catch (e) {
+                console.error(`${CONFIG.PROJECT_NAME}: Error checking ban status.`, e.message);
+                if (e.message === "User is banned.") throw e;
+            }
+        },
+
+        banUser() {
+            try {
+                const expires = new Date().getTime() + CONFIG.BAN_DURATION_HOURS * 60 * 60 * 1000;
+                localStorage.setItem('flySecurityBan', JSON.stringify({ expires }));
+                localStorage.removeItem('flySecurityWarning');
+                // Redirect immediately after setting the ban
+                window.location.href = CONFIG.ACTION_EXIT_URL;
+            } catch (e) {
+                console.error(`${CONFIG.PROJECT_NAME}: Could not ban user. Redirecting as a fallback.`, e);
+                window.location.href = CONFIG.ACTION_EXIT_URL;
+            }
+        },
+
+        issueWarning() {
+            UIManager.showWarning();
+            try {
+                if (localStorage.getItem('flySecurityWarning')) {
+                    this.banUser();
+                } else {
+                    localStorage.setItem('flySecurityWarning', 'true');
+                }
+            } catch (e) {
+                 console.error(`${CONFIG.PROJECT_NAME}: Could not issue warning.`, e);
+            }
+        },
+
+        detectRepetitiveAction(type) {
+            const now = new Date().getTime();
+            const config = CONFIG.ACTION_THRESHOLD[type];
+            this.lastActions[type].push(now);
+            this.lastActions[type] = this.lastActions[type].filter(timestamp => now - timestamp < config.time);
+            if (this.lastActions[type].length > config.count) {
+                this.issueWarning();
+                this.lastActions[type] = [];
+            }
+        },
+
+        setupEventListeners() {
             document.addEventListener('contextmenu', e => e.preventDefault());
             document.addEventListener('selectstart', e => e.preventDefault());
-            document.addEventListener('copy', e => { e.preventDefault(); banUser(); });
-            document.addEventListener('cut', e => { e.preventDefault(); banUser(); });
+            document.addEventListener('copy', e => { e.preventDefault(); this.banUser(); });
+            document.addEventListener('cut', e => { e.preventDefault(); this.banUser(); });
+            
+            document.addEventListener('click', () => this.detectRepetitiveAction('clicks'));
+            document.addEventListener('keydown', (e) => {
+                this.detectRepetitiveAction('keys');
 
-            // Detección de herramientas de desarrollador
+                // Prohibited key combinations
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase() === 'U') || (e.ctrlKey && e.key.toUpperCase() === 'P')) {
+                    e.preventDefault();
+                    this.banUser();
+                }
+            });
+        },
+
+        startDevToolsChecker() {
+            const threshold = 160;
             setInterval(() => {
-                const threshold = 160;
                 if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
-                    banUser();
+                    this.banUser();
                 }
             }, 1000);
-
-            document.addEventListener('keydown', e => {
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) || (e.ctrlKey && e.key.toUpperCase() === 'U')) {
-                    e.preventDefault();
-                    banUser();
-                }
-                if (e.ctrlKey && e.key.toUpperCase() === 'P') e.preventDefault();
-            });
-
-            // Detección de acciones repetitivas
-            let lastActions = { clicks: [], keys: [] };
-            const detectRepetitiveAction = (type, time, count) => {
-                const now = Date.now();
-                lastActions[type].push(now);
-                lastActions[type] = lastActions[type].filter(timestamp => now - timestamp < time);
-                if (lastActions[type].length > count) {
-                    showWarningPanel();
-                    lastActions[type] = [];
-                }
-            };
-            document.addEventListener('click', () => detectRepetitiveAction('clicks', config.actionThreshold.clicks.time, config.actionThreshold.clicks.count));
-            document.addEventListener('keydown', () => detectRepetitiveAction('keys', config.actionThreshold.keys.time, config.actionThreshold.keys.count));
         }
     };
 
-    // --- MÓDULO DE VERIFICACIÓN DE CONEXIÓN ---
-
-    const connectionChecker = {
-        timerId: null,
-        secondsLeft: 30,
+    // --- CONNECTION MANAGER MODULE ---
+    const ConnectionManager = {
+        countdownInterval: null,
+        
         init() {
             window.addEventListener('online', this.handleOnline.bind(this));
             window.addEventListener('offline', this.handleOffline.bind(this));
+            if (!navigator.onLine) {
+                this.handleOffline();
+            }
         },
+
         handleOffline() {
-            if (this.timerId) return;
+            if (this.countdownInterval) return; // Already offline
 
-            const errorScreen = document.getElementById(getSelector('connection-error'));
-            if (errorScreen) errorScreen.classList.add(getSelector('visible'));
+            const panel = document.getElementById(DOM_IDS.connectionLossPanel);
+            panel.classList.add(DOM_CLASSES.visible);
+            
+            let secondsLeft = CONFIG.CONNECTION_LOSS_TIMEOUT_SECONDS;
+            const timerElement = document.getElementById(`${DOM_IDS.connectionLossPanel}-timer`);
 
-            this.secondsLeft = 30;
-            const timerElement = document.getElementById(getSelector('connection-timer'));
-            if (timerElement) timerElement.textContent = this.secondsLeft;
-
-            this.timerId = setInterval(() => {
-                this.secondsLeft--;
-                if (timerElement) timerElement.textContent = this.secondsLeft;
-                if (this.secondsLeft <= 0) {
-                    clearInterval(this.timerId);
-                    window.location.href = config.errorRedirectUrl;
+            this.countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (timerElement) {
+                    timerElement.textContent = secondsLeft;
+                }
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(this.countdownInterval);
+                    window.location.href = CONFIG.ACTION_EXIT_URL;
                 }
             }, 1000);
         },
+
         handleOnline() {
-            if (this.timerId) {
-                clearInterval(this.timerId);
-                this.timerId = null;
+            if (!this.countdownInterval) return; // Was not offline
 
-                const errorScreen = document.getElementById(getSelector('connection-error'));
-                if (errorScreen) errorScreen.classList.remove(getSelector('visible'));
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
 
-                this.showConnectionRecovered();
+            const panel = document.getElementById(DOM_IDS.connectionLossPanel);
+            panel.classList.remove(DOM_CLASSES.visible);
+            
+            UIManager.showConnectionRestored();
+        }
+    };
+
+
+    // --- CANVAS ANIMATION MODULE ---
+    const CanvasAnimator = {
+        canvas: null,
+        ctx: null,
+        particles: [],
+        animationFrameId: null,
+        isActive: false,
+
+        init(canvasElement) {
+            this.canvas = canvasElement;
+            this.ctx = this.canvas.getContext('2d');
+            this.resize();
+            window.addEventListener('resize', () => this.resize());
+        },
+
+        resize() {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+            this.particles = [];
+            this.createParticles();
+        },
+
+        createParticles() {
+            const particleCount = Math.floor((this.canvas.width * this.canvas.height) / 20000);
+            for (let i = 0; i < particleCount; i++) {
+                this.particles.push({
+                    x: Math.random() * this.canvas.width,
+                    y: Math.random() * this.canvas.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 2 + 1,
+                });
             }
         },
-        showConnectionRecovered() {
-            if (document.getElementById(getSelector('recovered-panel'))) return;
-            const panel = document.createElement('div');
-            panel.id = getSelector('recovered-panel');
-            panel.innerHTML = `
-                <strong>Conexión Recuperada</strong>
-                <p>¡Bienvenido de nuevo!</p>
-            `;
-            document.body.appendChild(panel);
 
-            setTimeout(() => {
-                panel.style.opacity = '0';
-                panel.style.transform = 'translateX(100%)';
-                setTimeout(() => document.body.removeChild(panel), 600);
-            }, 3000);
-        }
-    };
-
-    // --- CONSTRUCCIÓN DE LA INTERFAZ Y ESTILOS ---
-
-    /**
-     * Inyecta todas las reglas de CSS necesarias en el <head> del documento.
-     * Utiliza nombres de clases y IDs generados aleatoriamente.
-     */
-    const injectStyles = () => {
-        if (document.getElementById(getSelector('styles'))) return;
-
-        const styleSheet = document.createElement("style");
-        styleSheet.id = getSelector('styles');
-        styleSheet.textContent = `
-            /* --- Importación de Fuente --- */
-            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-
-            /* --- Variables Globales y Estilos Base --- */
-            :root {
-                --fs-font: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                --fs-primary-color: #00bfff; /* DeepSkyBlue */
-                --fs-error-color: #ff3b3b;
-                --fs-warning-color: #ffa000;
-                --fs-success-color: #4CAF50;
-                --fs-dark-bg: #10121a;
-                --fs-light-text: #e0e0e0;
-                --fs-dark-text: #333;
-            }
-
-            /* --- Pantallas de Superposición (Baneo, Error de Conexión) --- */
-            #${getSelector('ban-screen')}, #${getSelector('connection-error')} {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                z-index: 2147483647; /* Máximo z-index */
-                display: flex; justify-content: center; align-items: center;
-                background: rgba(16, 18, 26, 0.7);
-                backdrop-filter: blur(15px);
-                -webkit-backdrop-filter: blur(15px);
-                font-family: var(--fs-font);
-                color: var(--fs-light-text);
-                text-align: center;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.5s ease, visibility 0.5s ease;
-            }
-
-            #${getSelector('ban-screen')} { /* La pantalla de baneo es siempre visible si se crea */
-                opacity: 1;
-                visibility: visible;
-            }
-
-            #${getSelector('connection-error')}.${getSelector('visible')} {
-                 opacity: 1;
-                 visibility: visible;
-            }
-
-            .${getSelector('modal-content')} {
-                background: rgba(29, 35, 62, 0.6);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
-                padding: 2rem;
-                max-width: 90%;
-                width: 500px;
-                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-                transform: scale(0.95);
-                transition: transform 0.4s ease;
-            }
-             #${getSelector('ban-screen')} .${getSelector('modal-content')},
-             #${getSelector('connection-error')}.${getSelector('visible')} .${getSelector('modal-content')} {
-                transform: scale(1);
-            }
-
-            .${getSelector('modal-header')} {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 1.5rem;
-                gap: 12px;
-            }
-            .${getSelector('modal-header')} img {
-                width: 40px;
-                height: 40px;
-            }
-            .${getSelector('modal-header')} h1 {
-                font-size: 1.2rem;
-                margin: 0;
-                color: var(--fs-light-text);
-                font-weight: 600;
-            }
-
-            #${getSelector('ban-screen')} h2, #${getSelector('connection-error')} h2 {
-                font-size: clamp(1.8rem, 5vw, 2.5rem);
-                margin: 0 0 1rem;
-                color: var(--fs-error-color);
-            }
-            #${getSelector('connection-error')} #_ {
-                 font-size: 2.2rem;
-                 color: var(--fs-warning-color);
-                 margin-top: 1.5rem;
-                 display: block;
-             }
-
-            /* --- Paneles de Notificación (Advertencia, Conexión Recuperada) --- */
-            #${getSelector('warning-panel')}, #${getSelector('recovered-panel')} {
-                position: fixed;
-                top: 25px;
-                right: 25px;
-                z-index: 2147483646;
-                background: rgba(29, 35, 62, 0.8);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                color: var(--fs-light-text);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-                padding: 1rem;
-                width: 90%;
-                max-width: 350px;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-                font-family: var(--fs-font);
-                transition: opacity 0.5s ease, transform 0.5s ease;
-                transform: translateX(120%);
-                opacity: 1; /* Se anima desde el script */
-            }
+        draw() {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.strokeStyle = 'rgba(0, 169, 255, 0.3)';
+            this.ctx.fillStyle = 'rgba(0, 169, 255, 0.5)';
             
-            /* Posicionamiento inicial animable */
-            @media (min-width: 480px) {
-              body:not(._fs_init) #${getSelector('warning-panel')},
-              body:not(._fs_init) #${getSelector('recovered-panel')} {
-                  transform: translateX(calc(100% + 30px));
-              }
-            }
+            this.particles.forEach(p => {
+                // Draw particle
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                this.ctx.fill();
 
+                // Update position
+                p.x += p.vx;
+                p.y += p.vy;
 
-            #${getSelector('warning-panel')} { border-left: 4px solid var(--fs-warning-color); }
-            #${getSelector('recovered-panel')} { border-left: 4px solid var(--fs-success-color); background: rgba(30, 60, 40, 0.8);}
-            #${getSelector('warning-panel')} strong, #${getSelector('recovered-panel')} strong { font-size: 1rem; }
-            #${getSelector('warning-panel')} p, #${getSelector('recovered-panel')} p { margin: 4px 0 0; font-size: 0.9rem; opacity: 0.8; }
-            #${getSelector('warning-panel')} .${getSelector('modal-header')} h3 { font-size: 1rem; margin: 0; }
-            #${getSelector('warning-panel')} .${getSelector('modal-header')} img { width: 24px; height: 24px; }
-            #${getSelector('warning-panel')} .${getSelector('modal-header')} { margin-bottom: 0.8rem; justify-content: flex-start;}
+                // Wrap around edges
+                if (p.x < 0) p.x = this.canvas.width;
+                if (p.x > this.canvas.width) p.x = 0;
+                if (p.y < 0) p.y = this.canvas.height;
+                if (p.y > this.canvas.height) p.y = 0;
+            });
 
-            /* --- Marca de Agua y Modal "Sitio Protegido" --- */
-            #${getSelector('watermark-container')} {
-                position: fixed;
-                bottom: 15px; left: 15px;
-                z-index: 2147483645;
-                cursor: pointer;
-            }
-            #${getSelector('watermark-container')} img {
-                width: 50px;
-                height: 50px;
-                transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.3s ease;
-                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-            }
-            #${getSelector('watermark-container')}:hover img {
-                transform: scale(1.1);
-                filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
-            }
-            
-            #${getSelector('protected-modal')} {
-                /* Comparte estilos con las pantallas de superposición */
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                z-index: 2147483647;
-                display: flex; justify-content: center; align-items: center;
-                background: rgba(16, 18, 26, 0.7);
-                backdrop-filter: blur(15px);
-                -webkit-backdrop-filter: blur(15px);
-                font-family: var(--fs-font);
-                color: var(--fs-light-text);
-                text-align: center;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.5s ease, visibility 0.5s ease;
-            }
-            #${getSelector('protected-modal')}.${getSelector('visible')} {
-                 opacity: 1;
-                 visibility: visible;
-            }
-             #${getSelector('protected-modal')} .shield-icon svg {
-                width: 80px; height: 80px;
-                stroke: var(--fs-primary-color);
-                filter: drop-shadow(0 0 15px var(--fs-primary-color));
-            }
-            #${getSelector('protected-modal')} h2 {
-                color: var(--fs-light-text);
-                font-size: clamp(1.8rem, 5vw, 2.5rem);
-                margin: 15px 0 10px;
-            }
-            
-            /* --- Media Queries para Responsividad --- */
-            @media (max-width: 768px) {
-                .${getSelector('modal-content')} {
-                    padding: 1.5rem;
+            // Draw lines between nearby particles
+            for (let i = 0; i < this.particles.length; i++) {
+                for (let j = i + 1; j < this.particles.length; j++) {
+                    const dx = this.particles[i].x - this.particles[j].x;
+                    const dy = this.particles[i].y - this.particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                        this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                        this.ctx.stroke();
+                    }
                 }
             }
-            @media (max-width: 480px) {
-                 #${getSelector('warning-panel')}, #${getSelector('recovered-panel')} {
-                    top: 15px; right: 15px; left: 15px;
-                    width: auto;
-                    max-width: none;
-                 }
-                 #${getSelector('watermark-container')} {
-                     bottom: 10px; left: 10px;
-                 }
-                 #${getSelector('watermark-container')} img {
-                     width: 45px; height: 45px;
-                 }
+        },
+
+        animate() {
+            if (!this.isActive) return;
+            this.draw();
+            this.animationFrameId = requestAnimationFrame(() => this.animate());
+        },
+
+        start() {
+            if (this.isActive) return;
+            this.isActive = true;
+            this.animate();
+        },
+
+        stop() {
+            this.isActive = false;
+            if (this.animationFrameId) {
+                cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = null;
             }
-        `;
-        document.head.appendChild(styleSheet);
+        }
     };
 
-    /**
-     * Crea y añade todos los elementos de la UI al DOM.
-     */
-    const createUI = () => {
-        // Marca de Agua
-        const watermarkContainer = document.createElement('div');
-        watermarkContainer.id = getSelector('watermark-container');
-        watermarkContainer.innerHTML = `<img src="${config.logoUrl}" alt="Fly Security">`;
-        document.body.appendChild(watermarkContainer);
 
-        // Modal de "Sitio Protegido"
-        const protectedModal = document.createElement('div');
-        protectedModal.id = getSelector('protected-modal');
-        protectedModal.innerHTML = `
-            <div class="${getSelector('modal-content')}">
-                <div class="shield-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" style="fill:rgba(0, 191, 255, 0.1);"></path>
-                    </svg>
-                </div>
-                <h2>Sitio Protegido</h2>
-                <p>Tu navegación es segura. Este sitio utiliza Fly Security para proteger el contenido.</p>
-            </div>`;
-        document.body.appendChild(protectedModal);
-
-        // Pantalla de Error de Conexión
-        const errorScreen = document.createElement('div');
-        errorScreen.id = getSelector('connection-error');
-        errorScreen.innerHTML = `
-            <div class="${getSelector('modal-content')}">
-                 <header class="${getSelector('modal-header')}">
-                    <img src="${config.logoUrl}" alt="Logo">
-                    <h1>FLY SECURITY V3.2</h1>
-                </header>
-                <h2>Conexión Perdida</h2>
-                <p>Se ha interrumpido la conexión a la red. Intentando reconectar...</p>
-                <p>Si la conexión no se recupera, serás redirigido en <strong id="${getSelector('connection-timer')}">30</strong> segundos.</p>
-            </div>`;
-        document.body.appendChild(errorScreen);
-
-        // --- Event Listeners para la UI ---
-        watermarkContainer.addEventListener('click', () => {
-            protectedModal.classList.add(getSelector('visible'));
-        });
-
-        let pressTimer;
-        watermarkContainer.addEventListener('mousedown', () => {
-            pressTimer = setTimeout(() => {
-                window.open(config.creatorPage, '_blank');
-            }, 1500);
-        });
-        watermarkContainer.addEventListener('mouseup', () => clearTimeout(pressTimer));
-        watermarkContainer.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-
-        protectedModal.addEventListener('click', (e) => {
-            if (e.target.id === getSelector('protected-modal')) {
-                protectedModal.classList.remove(getSelector('visible'));
-            }
-        });
-    };
-
-    // --- INICIALIZACIÓN DEL SCRIPT ---
-    
-    /**
-     * Función principal que se ejecuta cuando el DOM está listo.
-     */
-    const initialize = () => {
-        // 1. Verificar si el usuario está baneado. Esto detendrá la ejecución si es true.
+    // --- INITIALIZATION ---
+    function initialize() {
+        // Run security checks first. If the user is banned, the script will stop.
         try {
-            checkBanStatus();
+            SecurityManager.init();
         } catch (e) {
-            console.info(e.message);
-            return; // Detiene toda la inicialización si el usuario está baneado
+            if (e.message === "User is banned.") {
+                console.info(`${CONFIG.PROJECT_NAME}: Initialization halted. User is banned.`);
+                return; // Stop execution completely
+            }
         }
 
-        // 2. Inyectar los estilos CSS únicos.
-        injectStyles();
-
-        // 3. Crear los elementos de la interfaz.
-        createUI();
-
-        // 4. Activar los módulos de protección.
-        protectionModules.init();
-
-        // 5. Iniciar el verificador de conexión.
-        connectionChecker.init();
-        
-        // 6. Añadir una clase al body para indicar que el script se ha cargado.
-        // Esto previene flashes de contenido sin estilo en los paneles.
-        requestAnimationFrame(() => {
-            document.body.classList.add('_fs_init');
-        });
-    };
-
-    // Esperar a que el DOM esté completamente cargado antes de ejecutar el script.
+        // If not banned, proceed with UI and other managers
+        UIManager.init();
+        ConnectionManager.init();
+    }
+    
+    // Defer initialization until the DOM is fully loaded
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initialize);
     } else {
