@@ -3,19 +3,24 @@
 
 /*
 =================================================================
-  VARIABLES DE DISEÑO Y CONFIGURACIÓN GLOBAL
+  1. VARIABLES GLOBALES Y CONFIGURACIÓN DE DISEÑO
 =================================================================
+  * Paleta de colores refinada y variables para el efecto Glassmorphism.
+  * Tipografía y espaciado fluidos usando clamp() para una adaptabilidad perfecta.
+  * Transiciones y sombras suaves para una sensación premium.
 */
 :root {
   /* Paleta de Colores */
-  --color-background: #101010;
-  --color-primary: #181818;
-  --color-secondary: #2a2a2a;
+  --color-background: #0d0d0d;
   --color-accent: #e50914;
   --color-accent-hover: #f40612;
-  --color-text-primary: #ffffff;
+  --color-text-primary: #f5f5f7;
   --color-text-secondary: #a0a0a0;
-  --color-particle: rgba(255, 255, 255, 0.2);
+  
+  /* Variables para Glassmorphism */
+  --glass-background: rgba(30, 30, 30, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: 15px;
 
   /* Tipografía */
   --font-family: 'Poppins', sans-serif;
@@ -23,17 +28,21 @@
   /* Espaciado Fluido */
   --spacing-xs: clamp(0.5rem, 1vw, 0.75rem);
   --spacing-sm: clamp(0.75rem, 1.5vw, 1rem);
-  --spacing-md: clamp(1.25rem, 2.5vw, 1.75rem);
-  --spacing-lg: clamp(2rem, 4vw, 3rem);
+  --spacing-md: clamp(1.25rem, 2.5vw, 2rem);
+  --spacing-lg: clamp(2rem, 4vw, 3.5rem);
 
   /* Otros */
-  --border-radius: 12px;
+  --border-radius: 16px;
   --transition-smooth: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  --shadow-deep: 0 10px 30px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
-  --animation-duration: 800ms;
+  --shadow-float: 0 12px 35px rgba(0, 0, 0, 0.4);
+  --animation-duration: 900ms;
 }
 
-/* --- ESTILOS GENERALES Y RESET --- */
+/*
+=================================================================
+  2. ESTILOS GENERALES Y RESET
+=================================================================
+*/
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -52,7 +61,7 @@ body {
 
 /*
 =================================================================
-  FONDO DE CANVAS ANIMADO
+  3. FONDO DE CANVAS ANIMADO
 =================================================================
 */
 #particle-canvas {
@@ -62,23 +71,26 @@ body {
   width: 100vw;
   height: 100vh;
   z-index: -1;
-  /* El JS se encarga del resto */
 }
-
 
 /*
 =================================================================
-  ENCABEZADO Y NAVEGACIÓN
+  4. ENCABEZADO Y NAVEGACIÓN (Glassmorphism)
 =================================================================
+  * Implementa el efecto cristal, manteniéndose fijo en la parte superior.
+  * La sombra sutil le da profundidad sin necesidad de eventos de scroll.
 */
 .main-header {
   padding: var(--spacing-sm) var(--spacing-md);
-  background-color: rgba(24, 24, 24, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--glass-background);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: box-shadow var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Sombra sutil permanente */
 }
 
 .navbar {
@@ -97,7 +109,7 @@ body {
   transition: transform var(--transition-smooth);
 }
 .nav-logo:hover {
-    transform: scale(1.03);
+  transform: scale(1.05);
 }
 
 .nav-logo .logo {
@@ -106,90 +118,54 @@ body {
 }
 
 .nav-logo h1 {
-  font-size: 1.5rem;
+  font-size: clamp(1.4rem, 3vw, 1.6rem);
   font-weight: 600;
-}
-
-.nav-right .return-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: var(--color-accent);
-  color: var(--color-text-primary);
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  transition: all var(--transition-smooth);
-  text-decoration: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.return-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.4s ease, height 0.4s ease;
-}
-
-.return-btn:hover {
-  background-color: var(--color-accent-hover);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 15px rgba(229, 9, 20, 0.3);
-}
-.return-btn:hover::before {
-    width: 200px;
-    height: 200px;
-}
-
-.return-btn .fa-arrow-left {
-  font-size: 1rem;
-}
-
-.return-btn span {
-  display: none; /* Mobile-first: oculto por defecto */
 }
 
 /*
 =================================================================
-  CONTENEDOR PRINCIPAL
+  5. CONTENEDOR PRINCIPAL (Glassmorphism)
 =================================================================
+  * Núcleo del diseño con efecto de cristal esmerilado.
+  * Animación de entrada personalizada, más fluida y profesional.
 */
 .main-container {
-  flex-grow: 1;
-  width: 90%;
-  max-width: 800px;
+  width: 95%;
+  max-width: 850px;
   margin: var(--spacing-md) auto;
-  padding: var(--spacing-md);
-  background-color: var(--color-primary);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-deep);
+  padding: var(--spacing-md) var(--spacing-md);
   text-align: center;
-  border: 1px solid var(--color-secondary);
-  /* Animación de entrada */
-  --animate-duration: var(--animation-duration);
+
+  /* Efecto Glassmorphism */
+  background: var(--glass-background);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-float);
+  
+  /* Animación de entrada personalizada (sobrescribe animate.css) */
+  animation: floatIn var(--animation-duration) cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0; /* Inicia oculto para la animación */
 }
 
 .content-header h1 {
-  font-size: clamp(1.8rem, 5vw, 2.2rem);
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
   font-weight: 700;
+  letter-spacing: clamp(-1px, 0.2vw, 0px);
   margin-bottom: var(--spacing-xs);
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Sombra para legibilidad */
 }
 
 .content-header h2 {
-  font-size: clamp(1rem, 3vw, 1.2rem);
+  font-size: clamp(1rem, 3vw, 1.25rem);
   color: var(--color-text-secondary);
   font-weight: 400;
+  line-height: clamp(1.4, 2vw, 1.6);
   margin-bottom: var(--spacing-lg);
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-/* --- CONTENIDO LEGAL PLEGABLE --- */
 .legal-content-wrapper {
   text-align: left;
   margin-bottom: var(--spacing-md);
@@ -214,6 +190,60 @@ body {
   padding-left: var(--spacing-sm);
 }
 
+/*
+=================================================================
+  6. COMPONENTES Y MICRO-INTERACCIONES
+=================================================================
+*/
+
+/* --- Botón de Regreso con Hover Avanzado --- */
+.return-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-accent);
+  color: var(--color-text-primary);
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  z-index: 1;
+}
+
+.return-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s ease;
+  z-index: -1;
+}
+
+.return-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(229, 9, 20, 0.35);
+  background: var(--color-accent-hover);
+}
+
+.return-btn:hover::before {
+  left: 100%;
+}
+
+.return-btn .fa-arrow-left {
+  font-size: 1rem;
+}
+
+.return-btn span {
+  display: none;
+}
+
+/* --- Enlace "Mostrar más" con Subrayado Animado --- */
 .toggle-legal {
   color: var(--color-accent);
   text-decoration: none;
@@ -221,59 +251,83 @@ body {
   cursor: pointer;
   display: inline-block;
   margin-bottom: var(--spacing-lg);
-  transition: color 0.3s ease;
+  position: relative;
+  padding-bottom: 4px;
 }
-.toggle-legal:hover {
-  color: var(--color-accent-hover);
+
+.toggle-legal::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--color-accent-hover);
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease-out;
+}
+.toggle-legal:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
 }
 
 /*
 =================================================================
-  LOADER DE REDIRECCIÓN MEJORADO
+  7. LOADER DE REDIRECCIÓN (Spinner Sofisticado)
 =================================================================
+  * Reemplazo completo del spinner por uno nuevo, creado con CSS.
+  * Anima el trazado de un círculo, usando el color de acento.
 */
 .redirect-loader {
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-secondary);
+  border-top: 1px solid var(--glass-border);
 }
 
 .spinner {
+  /* Oculta el spinner original */
+  animation: none;
+  width: 60px;
+  height: 60px;
+  margin: var(--spacing-md) auto;
   position: relative;
-  width: 50px;
-  height: 50px;
-  margin: var(--spacing-md) auto var(--spacing-md) auto;
-  animation: spin 2.5s infinite linear;
+}
+.spinner .dot1, .spinner .dot2 {
+  display: none; /* Oculta los dots originales */
+}
+/* Nuevo Spinner SVG */
+.spinner::before {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin-top: -30px;
+    margin-left: -30px;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    border-top-color: var(--color-accent);
+    animation: spin-circle 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
 
-.dot1, .dot2 {
-  width: 60%;
-  height: 60%;
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  background-color: var(--color-accent);
-  border-radius: 100%;
-  animation: bounce 2s infinite ease-in-out;
-}
-
-.dot2 {
-  top: auto;
-  bottom: 0;
-  animation-delay: -1.0s;
-  background-color: var(--color-secondary);
-}
-
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: scale(0.0);
-  } 50% {
-    transform: scale(1.0);
-  }
+.spinner::after {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin-top: -30px;
+    margin-left: -30px;
+    border-radius: 50%;
+    border: 4px solid var(--glass-border);
+    border-top-color: var(--color-accent);
+    animation: spin-circle 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite, spin-path 1.2s ease-in-out infinite;
+    animation-delay: -0.5s;
 }
 
 .redirect-loader p {
@@ -284,23 +338,21 @@ body {
 
 /*
 =================================================================
-  VISTAS DE MANTENIMIENTO Y ERROR
+  8. VISTAS DE MANTENIMIENTO Y ERROR
 =================================================================
+  * Animación mejorada para el ícono de mantenimiento.
 */
 #maintenance-view, #error-view {
   padding: var(--spacing-lg) 0;
 }
+
 .maintenance-icon {
   font-size: 4rem;
   margin-bottom: var(--spacing-md);
   color: var(--color-accent);
-  animation: pulse 2s infinite;
+  animation: maintenance-gear 4s linear infinite; /* Nueva animación */
 }
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
+
 #maintenance-view h1, #error-view .error-title {
   margin-bottom: var(--spacing-sm);
   color: var(--color-text-primary);
@@ -317,12 +369,61 @@ body {
 
 /*
 =================================================================
-  MEDIA QUERIES - RESPONSIVE DESIGN
+  9. ANIMACIONES PERSONALIZADAS (@keyframes)
+=================================================================
+*/
+
+/* Animación de entrada para el contenedor principal */
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animación para el nuevo spinner */
+@keyframes spin-circle {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes spin-path {
+  0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+
+/* Animación para el ícono de mantenimiento */
+@keyframes maintenance-gear {
+  0% { transform: rotate(0deg) scale(1); filter: brightness(1); }
+  50% { transform: rotate(180deg) scale(1.1); filter: brightness(1.3); }
+  100% { transform: rotate(360deg) scale(1); filter: brightness(1); }
+}
+
+/*
+=================================================================
+  10. MEDIA QUERIES - DISEÑO RESPONSIVE FLUIDO
 =================================================================
 */
 
 /* --- Tablets (600px y más) --- */
 @media (min-width: 600px) {
+  .return-btn span {
+    display: inline;
+  }
+  .return-btn {
+     padding: var(--spacing-xs) var(--spacing-md);
+  }
+  .main-container {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+}
+
+/* --- Tablets en horizontal y Laptops (900px y más) --- */
+@media (min-width: 900px) {
   .nav-logo .logo {
     width: 40px;
     height: 40px;
@@ -330,17 +431,7 @@ body {
   .nav-logo h1 {
     font-size: 1.75rem;
   }
-  .return-btn span {
-    display: inline; /* Muestra el texto del botón */
-  }
-  .return-btn {
-     padding: var(--spacing-xs) var(--spacing-md);
-  }
-}
-
-/* --- Laptops/Escritorios Pequeños (992px y más) --- */
-@media (min-width: 992px) {
-  main.main-container {
+  .main-container {
     padding: var(--spacing-lg);
   }
   .legal-content-wrapper {
@@ -348,9 +439,10 @@ body {
   }
 }
 
-/* --- Escritorios Grandes/TV (1400px y más) --- */
-@media (min-width: 1400px) {
-  main.main-container {
+/* --- Escritorios Grandes / Ultra-Wide (1600px y más) --- */
+@media (min-width: 1600px) {
+  .main-container {
+    max-width: 1100px;
     margin-top: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
   }
