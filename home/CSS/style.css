@@ -1,5 +1,5 @@
 /* --- GOOGLE FONTS --- */
-@import url('https://fonts.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 /* --- VARIABLES DE DISEÑO --- */
 :root {
@@ -176,10 +176,9 @@ img {
     padding: var(--spacing-xs) 0;
     position: relative;
     transition: color var(--transition-smooth);
-    border-bottom: 2px solid transparent; /* Mantenido por coherencia inicial */
+    border-bottom: 2px solid transparent;
 }
 
-/* Efecto de hover refinado para escritorio con pseudo-elemento */
 .nav-links a::after {
     content: '';
     position: absolute;
@@ -225,7 +224,6 @@ img {
     font-size: 1.5rem;
 }
 
-/* Estilos del Submenú (Escritorio) */
 .submenu-parent {
     position: relative;
 }
@@ -265,7 +263,7 @@ img {
 }
 
 .submenu a::after {
-    display: none; /* El submenú no necesita el efecto de línea */
+    display: none;
 }
 
 .submenu a:hover {
@@ -273,7 +271,6 @@ img {
     color: var(--color-text-primary);
 }
 
-/* Menú Hamburguesa (Móvil) */
 .hamburger {
     display: none;
     background: none;
@@ -291,10 +288,9 @@ img {
     transition: transform 0.3s var(--transition-smooth), opacity 0.3s ease;
 }
 
-/* Icono de cierre (X) creado con un pseudo-elemento para una transición suave */
 .hamburger::after {
     font-family: "Font Awesome 6 Free";
-    content: "\f00d"; /* Unicode para el ícono 'times' (X) de FontAwesome */
+    content: "\f00d";
     font-weight: 900;
     position: absolute;
     top: 0;
@@ -309,19 +305,6 @@ img {
     transition: transform 0.3s var(--transition-smooth), opacity 0.3s ease;
 }
 
-/* NOTA PARA EL DESARROLLADOR JS:
-  Para que la animación del icono y el overlay funcionen, se necesita
-  alternar una clase 'active' en el botón .hamburger y 'overlay-active' en el <body>.
-
-  Ejemplo de JS actualizado:
-  hamburger.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-    hamburger.classList.toggle('active'); // <-- Alterna la clase para la animación del icono
-    document.body.classList.toggle('overlay-active'); // <-- Alterna la clase para el fondo oscuro
-  });
-*/
-
-/* Animación de hamburguesa a 'X' cuando el menú está activo */
 .hamburger.active .fa-bars {
     opacity: 0;
     transform: rotate(90deg);
@@ -376,13 +359,10 @@ main {
   gap: var(--spacing-sm);
   overflow-x: auto;
   padding-bottom: var(--spacing-md);
-  
-  /* Ocultar barra de desplazamiento para navegadores basados en WebKit (Chrome, Safari) */
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Ocultar barra de desplazamiento con pseudoclase para navegadores WebKit */
 .carousel-container::-webkit-scrollbar {
   display: none;
 }
@@ -414,6 +394,7 @@ main {
   width: 100%;
   aspect-ratio: 2 / 3;
   overflow: hidden;
+  position: relative;
 }
 
 .card-image-container img {
@@ -450,7 +431,6 @@ main {
 
 /* --- DISEÑO RESPONSIVO --- */
 
-/* Keyframe para la animación de los ítems del menú móvil */
 @keyframes navLinkFade {
   from {
     opacity: 0;
@@ -462,44 +442,40 @@ main {
   }
 }
 
-/* Tablets y Teléfonos (hasta 1023px) */
 @media (max-width: 1023px) {
     .hamburger {
-        display: block; /* Mostrar hamburguesa */
+        display: block;
     }
 
-    /* Panel de Navegación Lateral estilo Netflix */
     .nav-links {
         position: fixed;
         top: 0;
-        left: -100%; /* Inicia oculto a la izquierda */
-        width: 80%; /* Ocupa el 80% del ancho */
-        max-width: 320px; /* Ancho máximo para pantallas grandes (tablets) */
+        left: -100%;
+        width: 80%;
+        max-width: 320px;
         height: 100vh;
         background-color: var(--color-primary);
         flex-direction: column;
-        justify-content: flex-start; /* Alinea los items arriba */
-        align-items: flex-start; /* Alinea el texto a la izquierda */
+        justify-content: flex-start;
+        align-items: flex-start;
         transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 5px 0 15px rgba(0,0,0,0.25);
-        padding-top: calc(var(--spacing-lg) * 3); /* Espacio superior para UI del móvil */
-        gap: 0; /* Controlar espaciado con padding en 'li' */
+        padding-top: calc(var(--spacing-lg) * 3);
+        gap: 0;
         z-index: 999;
-        /* Permitir desplazamiento si el contenido excede la altura de la pantalla */
         overflow-y: auto;
     }
 
     .nav-links.active {
-        left: 0; /* Muestra el menú deslizándolo desde la izquierda */
+        left: 0;
     }
     
     .nav-links li {
         width: 100%;
         text-align: left;
-        opacity: 0; /* Inicia invisible para la animación escalonada */
+        opacity: 0;
     }
 
-    /* Animación escalonada para los links al abrir el menú */
     .nav-links.active li {
         animation: navLinkFade 0.5s ease forwards;
     }
@@ -516,7 +492,7 @@ main {
         padding: var(--spacing-md) var(--spacing-lg);
         font-size: 1.1rem;
         width: 100%;
-        border-left: 4px solid transparent; /* Indicador para el hover/active */
+        border-left: 4px solid transparent;
     }
     
     .nav-links a:hover, .nav-links a:focus {
@@ -526,18 +502,13 @@ main {
     }
 
     .nav-links a::after {
-        display: none; /* Desactivar efecto de línea en móvil */
+        display: none;
     }
     
     .profile-menu span {
-        display: none; /* Ocultar texto "Mi Perfil" */
+        display: none;
     }
 
-    /*
-      NOTA PARA EL DESARROLLADOR JS:
-      Para que el submenú se despliegue al tocar, se necesita un script
-      que alterne la clase '.open' en el '.submenu-parent' correspondiente.
-    */
     .submenu {
         position: static;
         width: 100%;
@@ -547,25 +518,24 @@ main {
         visibility: visible;
         transform: none;
         padding: 0;
-        max-height: 0; /* Colapsado por defecto */
+        max-height: 0;
         overflow: hidden;
         transition: max-height 0.4s ease-in-out;
     }
     
     .submenu-parent.open .submenu {
-        max-height: 500px; /* Altura suficiente para mostrar todos los items */
-        overflow-y: auto; /* Permitir el desplazamiento dentro del submenú si es necesario */
+        max-height: 500px;
+        overflow-y: auto;
     }
 
     .submenu a {
         font-size: 1rem;
         color: var(--color-text-secondary);
-        padding-left: calc(var(--spacing-lg) * 2); /* Indentación para anidamiento */
+        padding-left: calc(var(--spacing-lg) * 2);
     }
 
-    /* Rotación de la flecha del submenú */
     .submenu-parent a .fa-chevron-down {
-        display: inline-block; /* Asegura que la transformación se aplique */
+        display: inline-block;
         transition: transform 0.4s ease-in-out;
         margin-left: var(--spacing-xs);
     }
@@ -574,10 +544,9 @@ main {
         transform: rotate(180deg);
     }
 
-    /* Desactivar el hover del submenú en dispositivos táctiles */
     .submenu-parent:hover .submenu {
-       display: block; /* Mantenemos el hover para tablets sin js */
-       max-height: 500px; /* Pero se prioriza el .open via JS */
+       display: block;
+       max-height: 500px;
        overflow-y: auto;
     }
     .submenu-parent.open .submenu {
@@ -586,14 +555,12 @@ main {
 }
 
 
-/* Teléfonos (hasta 767px) */
 @media (max-width: 767px) {
   .content-card {
     width: 120px;
   }
 }
 
-/* Tablets (a partir de 768px) */
 @media (min-width: 768px) {
   .main-header {
     padding: var(--spacing-md) var(--spacing-lg);
@@ -612,7 +579,6 @@ main {
   }
 }
 
-/* Escritorios (a partir de 1024px) */
 @media (min-width: 1024px) {
   .carousel-container {
     gap: var(--spacing-md);
@@ -621,4 +587,104 @@ main {
   .content-card {
     width: 200px;
   }
+}
+
+/* --- ESTILOS AÑADIDOS PARA EL HISTORIAL --- */
+
+.empty-history-message {
+  width: 100%;
+  text-align: center;
+  padding: var(--spacing-lg);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius);
+}
+
+.time-overlay {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(229, 9, 20, 0.85);
+  color: var(--color-text-primary);
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-top-left-radius: var(--border-radius);
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+
+#full-history-view {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background);
+  z-index: 2000;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#full-history-view.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.full-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.full-history-header h1 {
+  font-size: 2rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 2.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transition-smooth), transform var(--transition-smooth);
+}
+
+.close-btn:hover {
+  color: var(--color-text-primary);
+  transform: rotate(90deg);
+}
+
+/* REQUISITO 3: Rediseño Profesional de la Vista de Historial Completo */
+
+/* Base (Móviles): 2 a 3 columnas */
+.full-history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--spacing-sm); /* Un poco menos de espacio en móviles */
+}
+
+/* Tabletas: 4 a 5 columnas */
+@media (min-width: 768px) {
+  .full-history-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+  }
+}
+
+/* Escritorios: 6 o más columnas */
+@media (min-width: 1024px) {
+  .full-history-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+body.history-view-active {
+  overflow: hidden;
 }
